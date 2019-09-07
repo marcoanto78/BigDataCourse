@@ -1,0 +1,8 @@
+To create twitter credentials:
+https://apps.twitter.com/app/new
+
+How to get most discussed topics:
+http://stdatalabs.blogspot.ca/2016/09/spark-streaming-part-1-real-time.html
+
+Set up required for spark-shell
+https://stackoverflow.com/questions/25085128/how-to-use-twitterutils-in-spark-shell

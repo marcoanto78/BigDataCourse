@@ -1,0 +1,13 @@
+agg_cnt=dict()
+with open("transactions.csv") as f:
+  for line in f:
+    tokens = line.split(",")
+    if agg_cnt.get(tokens[1]) == None:
+      agg_cnt[tokens[1]] = int(tokens[2])
+    else:
+      agg_cnt[tokens[1]] = agg_cnt.get(tokens[1]) + int(tokens[2])
+
+with open("output.csv","w") as f:
+  for key in agg_cnt.keys():
+    data = ""+ key + ":" + str(agg_cnt.get(key)) + "\n"
+    f.write(data)

@@ -1,0 +1,61 @@
+sc
+
+val x = sc.textFile("<Your file>")
+
+val y = x.map(_.split('[')(1))
+
+val z = y.map(_.split(':')(0))
+
+val a = z.map((_,1))
+
+val b = a.reduceByKey(_+_)
+
+b.collect
+
+
+
+
+
+sc.textFile("<Your file>").map(_.split('[')(1)).map(_.split(':')(0)).map((_,1)).reduceByKey(_+_).collect
+
+
+
+
+
+
+
+
+val inputFile = sc.textFile("/sparkInput/employee.txt")
+
+inputFile.collect
+
+import sqlContext.implicits._
+
+case class Employee (firstName:String,lastName:String, deptId:Int)
+
+val finalDf = inputFile.map(_.split(",")).map(e=>Employee(e(0),e(1),e(2).toInt)).toDF()
+
+finalDf.printSchema
+
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types.{StructType, StructField, StringType, IntegerType};
+
+val schema = StructType(Seq(StructField("firstName", StringType, true), StructField("lastName", StringType, true), StructField("deptId", IntegerType, true)))
+
+val rowRDD = sc.textFile("/sparkInput/employee.txt").map(_.split(",")).map(e =>Row(e(0), e(1), e(2).toInt))
+
+val peopleDataFrame = sqlContext.createDataFrame(rowRDD, schema)
+
+
+
+
+val jsonDF = sqlContext.read.json("/sparkInput/departments.json")
+
+jsonDF.registerTempTable("departments")
+
+peopleDataFrame.registerTempTable("employee")
+
+val joinedDF = sqlContext.sql("select * from departments join employee on departments.deptId = employee.deptId")
+
+joinedDF.collect
+

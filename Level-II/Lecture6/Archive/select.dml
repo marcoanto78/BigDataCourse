@@ -1,0 +1,22 @@
+SELECT avg( t1.d1 ) from text_test t1 join text_test t2 on t1.d3 = t2.d3 and t1.d4 = t2.d4 where t1.d5<3;
+
+SELECT avg( t1.d1 ) from parquet_test_no_compression t1 join parquet_test_no_compression t2 on t1.d3 = t2.d3 and t1.d4 = t2.d4 where t1.d5<3;
+
+
+
+SELECT avg( t1.d1 ) from parquet_test t1 join parquet_test t2 on t1.d3 = t2.d3 and t1.d4 = t2.d4 where t1.d5<3;
+
+SELECT avg( t1.d1 ) from text_test t1 join parquet_test t2 on t1.d3 = t2.d3 and t1.d4 = t2.d4 where t1.d5<3;
+
+
+
+# Map Reduce scripts in Hive
+
+add file /home/hduser/hadoop/big_data_course/lecture15/mapper.py;
+
+from t1 select transform(c1) using 'mapper.py' as day;
+
+add file /home/hduser/hadoop/big_data_course/lecture15/reducer.py;
+
+from ( from t1 map c1 using 'mapper.py' as day) map_out reduce day using 'reducer.py' as day,hit_count;
+

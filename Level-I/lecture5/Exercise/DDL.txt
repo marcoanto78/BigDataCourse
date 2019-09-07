@@ -1,0 +1,5 @@
+create table movies (movieId int, title string, genres string) row format delimited fields terminated by ',';
+
+create table ratings (userId int,movieId int,rating double,t_stamp decimal(12,0)) row format delimited fields terminated by ',';
+
+create table tags (userId int,movieId int,tag string,t_stamp decimal(12,0)) row format delimited fields terminated by ',';

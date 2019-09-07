@@ -1,0 +1,3 @@
+{ "firstName":"John", "lastName":"Doe", "deptId":1 }
+{ "firstName":"Anna", "lastName":"Smith","deptId":1 }
+{ "firstName":"Peter", "lastName":"Jones","deptId":2 }

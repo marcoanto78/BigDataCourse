@@ -1,0 +1,5 @@
+{ "transId":123, "productId":1, "productCode": "ABCID62N2", "scanCode": "ABC", "sales":12, "discount":2, "actualCost":14, "salesDate":"2017-12-01" }
+{ "transId":123, "productId":1, "productCode": "ABCID62N2", "scanCode": "ABCD", "sales":12, "discount":2, "actualCost":14, "salesDate":"2017-12-01" }
+{ "transId":124, "productId":2, "productCode": "ABCTA62N2", "scanCode": "ABD", "sales":4, "discount":1, "actualCost":6, "salesDate":"2017-12-01" }
+{ "transId":125, "productId":1, "productCode": "ABCID62N2", "scanCode": "ABDD", "sales":12, "discount":2, "actualCost":14, "salesDate":"2017-12-01" }
+{ "transId":25, "productId":1, "productCode": "ABCID62N2", "scanCode": "AD", "sales":12, "discount":0, "actualCost":12, "salesDate":"2017-11-29" }

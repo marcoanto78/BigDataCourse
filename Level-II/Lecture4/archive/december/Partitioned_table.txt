@@ -1,0 +1,69 @@
+create table stage_transaction (tx_id int, product_cd string, trans_dt string, amt double, qty double) row format delimited fields terminated by ',';
+
+//COPY YOUR CSV FILE TO stage_transaction table
+
+create table transaction (tx_id int, product_cd string, amt double, qty double) partitioned by (trans_dt string)  row format delimited fields terminated by ',';
+
+insert into transaction partition (trans_dt='24-Nov-2018') values (1,'abc',12,10);
+
+insert into transaction partition (trans_dt) select tx_id, product_cd, amt, qty, trans_dt from stage_transaction;
+
+insert into transaction partition (trans_dt) select tx_id, product_cd, amt, qty, "DUMMY" from stage_transaction;
+
+alter table transaction drop partition (trans_dt='DUMMY');
+
+#hadoop fs -mkdir /data/mydb/transaction/trans_dt=DUMMY/
+#hadoop fs -cp /data/mydb/transaction/trans_dt=24-Nov-2018/* /data/mydb/transaction/trans_dt=DUMMY/
+
+alter table transaction add partition (trans_dt='DUMMY')
+
+alter table transaction add partition (trans_dt='DUMMY') location '/some/other/location';
+
+-- update record with tx_id=1
+insert overwrite table stage2 select tx_id, product_cd, trans_dt,  amt, case when tx_id=1 then 2000 else qty end as qty from stage2 ;
+
+-- Delete record with tx_id=1
+insert overwrite stage2 select * from stage2 where tx_id != 1;
+
+-- Truncate non-partition table
+insert overwrite stage2 select * from stage2 limit 0;
+
+select count(*) from transaction;
++----------+
+| count(*) |
++----------+
+| 124919   |
++----------+
+
+select trans_dt, count(*) from transaction where trans_dt='12-Jun-12' group by trans_dt
++-----------+----------+
+| trans_dt  | count(*) |
++-----------+----------+
+| 12-Jun-12 | 113      |
++-----------+----------+
+
+-- Now lets delete all records from this partition except one random
+insert overwrite transaction partition (trans_dt) select * from transaction where trans_dt='12-Jun-12' limit 1;
++-----------+----------+
+| trans_dt  | count(*) |
++-----------+----------+
+| 12-Jun-12 | 1        |
++-----------+----------+
+
+--But that doesn't delete any other data like non-partitioned table
+select count(*) from transaction;
++----------+
+| count(*) |
++----------+
+| 124807   |
++----------+
+
+################## PROJECT ##################
+1.Table structure
+2.Load all supporting tables (Tables except transaction log)
+3.Copy the transaction log file to stage area /source/retail/trans_logs directory in HDFS
+4.ETL Tasks
+  i) Read transaction log file and filter out required information
+ ii) Separate out different records based on codes
+
+trans_id,store_id,loyalty_id,promo_id,product_id,amt,discount,trans_date

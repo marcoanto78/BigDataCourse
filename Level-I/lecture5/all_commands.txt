@@ -1,0 +1,189 @@
+How to start impala shell? 
+Ans: impala-shell
+
+Please ignore following warning:
+WARNINGS: Impala does not have READ_WRITE access to path 'hdfs://quickstart.cloudera:8020/data/target'
+
+create database targetdb location '/data/target/targetdb';
+
+create table movies (movieId int, title string, genres string) row format delimited fields terminated by ',';
+
+To copy source file from local file system to hdfs table location
+Note: Run on unix terminal not on Impala shell
+hadoop fs -copyFromLocal movies.csv /data/target/targetdb/movies/
+
+After copying file to HDFS location, you need to REFRESH table in Impala
+REFRESH movies;
+
+create table ratings (userId int,movieId int,rating double,t_stamp decimal(12,0)) row format delimited fields terminated by ',';
+
+create table tags (userId int,movieId int,tag string,t_stamp decimal(12,0)) row format delimited fields terminated by ',';
+
+create table movie_stats (movieid int, movie_name string,avg_rating decimal(4,2),hash_tag string,hash_tag_cnt int) row format delimited fields terminated by ',';
+
+
+SQL parts to populate movie_stats table:
+
+Part 1: select m.movieid, m.title, avg(rating) from movies m join ratings r on m.movieid=r.movieid group by m.movieid, m.title;
+
+Part 2: select m.movieid, tag, count(*) as tag_cnt from movies m join tags t on m.movieid=t.movieid group by m.movieid, tag;
+
+
+
+
+
+
+
+INSERT INTO movie_stats (movieid     
+	,movie_name  
+	,avg_rating  
+	,hash_tag    
+	,hash_tag_cnt
+)
+SELECT t1.movieid, t1.title, CAST(t1.rtng AS DECIMAL(4,2)), t2.tag, CAST(t2.tag_cnt AS INT)
+from
+(select 
+	m.movieid, 
+	m.title, 
+	avg(rating) as rtng
+from movies m join ratings r on m.movieid=r.movieid group by m.movieid, m.title
+) t1
+JOIN 
+(select m.movieid, 
+	tag, 
+	count(*) as tag_cnt 
+	from movies m join tags t on m.movieid=t.movieid group by m.movieid, tag
+) t2 
+ON t1.movieid=t2.movieid
+
+How to run impala script
+impala-shell -d targetdb -f myscript.hql
+
+Approach 2
+
+DROP TABLE IF EXISTS movie_stats_s1;
+
+CREATE TABLE movie_stats_s1 as
+select
+        m.movieid,
+        m.title,
+        avg(rating) as rtng
+from movies m join ratings r on m.movieid=r.movieid group by m.movieid, m.title;
+
+DROP TABLE IF EXISTS movie_stats_s2;
+CREATE TABLE movie_stats_s2 as
+select m.movieid,
+        tag,
+        count(*) as tag_cnt
+        from movies m join tags t on m.movieid=t.movieid group by m.movieid, tag;
+
+INSERT overwrite movie_stats (movieid
+        ,movie_name
+        ,avg_rating
+        ,hash_tag
+        ,hash_tag_cnt
+)
+SELECT t1.movieid, t1.title, CAST(t1.rtng AS DECIMAL(4,2)), t2.tag, CAST(t2.tag_cnt AS INT)
+from movie_stats_s1 as t1
+JOIN
+        movie_stats_s2 as t2
+ON t1.movieid=t2.movieid;
+
+
+Alter column details:
+alter table movies change movieid movieid int comment 'UPI NOT NULL';
+
+Command to create table movies in stagedb using LIKE operator
+Create table movies LIKE targetdb.movies;
+
+Unique:
+select movieid, count(*) as cnt from movies group by movieid having cnt>1;
+
+NULL:
+headerselect count(*) as cnt from movies where movieid is null;
+
+Sample UNIX Script
+
+if [ ! -f step1.temp ]
+then
+  sed -i '1d' movies.csv
+  touch step1.temp
+fi
+
+impala-shell -d stagedb -q "truncate table movies"
+
+hadoop fs -copyFromLocal movies.csv /data/staging/stagedb/movies/
+
+impala-shell -d stagedb -q "invalidate metadata movies"
+
+# Lets do the UPI violation check
+
+impala-shell -d stagedb -o output.txt -q "select movieid, count(*) as cnt from movies group by movieid having cnt>1"
+
+wc_cnt=`wc -l output.txt | awk '{print $1}'`
+
+if [ $wc_cnt -eq 1 ]
+then
+   echo "count is zero, we are good to go"
+else
+   echo "count is non-zero. Exit the job"
+   exit 1
+fi
+
+#Similarly you have to do NULL violation check here
+impala-shell -d stagedb -o output.txt -q "select count(*) from movies where movieid is null" -B --output_delimiter=','
+
+wc_cnt=`cat output.txt`
+
+if [ $wc_cnt -eq 0 ]
+then
+   echo "count is zero, we are good to go"
+else
+   echo "count is non-zero. FOUND SOME NULLs. Exit the job"
+   exit 1
+fi
+
+#Remove the step1.temp file as we are done
+rm step1.temp
+
+
+Ratings table
+
+if [ ! -f step1.temp ]
+then
+  sed -i '1d' ratings.csv
+  touch step1.temp
+fi
+
+impala-shell -d stagedb -q "truncate ratings"
+
+hadoop fs -copyFromLocal ratings.csv /data/staging/stagedb/ratings/
+
+impala-shell -d stagedb -q "invalidate metadata ratings"
+
+# Lets remove duplicates
+
+impala-shell -d stagedb -o output.txt -q "insert overwrite table ratings select distinct * from ratings"
+
+#Populate data to target table
+impala-shell -d stagedb -q "insert into targetdb.ratings select r.* from ratings r join targetdb.movies m on r.movieid = m.movieid"
+
+#Populate error records in error table
+impala-shell -d stagedb -q " create table if not exists ratings_err like ratings; insert into ratings_err select r.* from ratings r left join targetdb.movies m on r.movieid = m.movieid where m.movieid is null"
+
+#Remove the step1.temp file as we are done
+rm step1.temp
+
+
+Connect to mysql:
+mysql -u retail_dba -p
+When asks for the password: enter “cloudera”
+
+Create movie_stats table in mysql
+Create table movie_stats  (movieid INT, movie_name varchar(500), avg_rating DECIMAL(4,2), hash_tag varchar(100), hash_tag_cnt INT)
+
+Sqoop Export:
+sqoop export --connect jdbc:mysql://localhost:3306/retail_db --username retail_dba --password cloudera --table movie_stats --fields-terminated-by ',' --export-dir /data/target/targetdb/movie_stats/
+
+Sqoop Import:
+sqoop import --connect jdbc:mysql://localhost:3306/retail_db --username retail_dba -P --table movie_stats --m 1 --target-dir /data/mydb/test/movie_stats

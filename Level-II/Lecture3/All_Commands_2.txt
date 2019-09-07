@@ -1,0 +1,152 @@
+Hive (impala-shell):
+--------------------
+create table fact_store (trans_id string, store_id int, prod_id int, loyalty_id int, promo_id int, emp_id int, amount double, qty int, trans_date string) row format delimited fields terminated by ',';														
+
+Scala (spark-shell):
+--------------------
+import org.apache.spark.sql.types.{StructType,StructField,StringType,IntegerType};
+import org.apache.spark.sql.Row;
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+
+val rowsLL = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="LL")
+val rowsTT = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="TT")
+val rowsPP = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="PP")
+val rowsBB = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="BB")
+
+val rddLL = rowsLL.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddTT = rowsTT.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8),row(9),row(10)))
+val rddPP = rowsPP.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddBB = rowsBB.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8)))
+
+val schemaLL = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true))
+val schemaTT = new StructType().add(StructField("tx_id", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("amount", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true)).add(StructField("c8", StringType, true)).add(StructField("c9", StringType, true)).add(StructField("lane_id", StringType, true)).add(StructField("trans_date", StringType, true))
+val schemaPP = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true))
+val schemaBB = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true)).add(StructField("c8", StringType, true)).add(StructField("c9", StringType, true))
+
+val dfLL = sqlContext.createDataFrame(rddLL, schemaLL)
+val dfTT = sqlContext.createDataFrame(rddTT, schemaTT)
+val dfPP = sqlContext.createDataFrame(rddPP, schemaPP)
+val dfBB = sqlContext.createDataFrame(rddBB, schemaBB)
+
+val dfemp = sqlContext.sql("SELECT * FROM retail.employee") 
+val dfloyalty = sqlContext.sql("SELECT * FROM retail.loyalty")
+val dfprod = sqlContext.sql("SELECT * FROM retail.product")
+val dfpromo = sqlContext.sql("SELECT * FROM retail.promotion")
+val dfstore = sqlContext.sql("SELECT * FROM retail.store")
+val dftranscode = sqlContext.sql("SELECT * FROM retail.trans_codes")
+
+val t1   = dfTT.join(dftranscode, $"c2" === $"trans_code").join(dfprod, $"c4" === $"product_code").join(dfstore, $"c8" === $"store_num").join(dfemp, $"c9" === $"employee_num")
+val t1_1 = t1.select("tx_id", "c2", "trans_code_id", "c4", "product_id", "c8", "store_id", "c9", "lane_id", "employee_id", "amount", "trans_date")
+
+val t2   = dfPP.join(dfpromo, $"c3" === $"promo_code")
+val t2_1 = t2.filter("substr(c7,1,10) <= Promo_end_date")
+val t2_2 = t2.select("c1", "Promo_code_id", "Promo_start_date", "Promo_end_date")
+
+val t3   = dfLL.join(dfloyalty, $"c3" === $"card_no")
+val t3_1 = t3.select("c1", "c3", "loyalty_member_num")
+
+val t4 = dfBB.join(dfstore, $"c6" === $"store_num")
+
+val t5 = t1_1.join(t2_1, t1_1("tx_id") === t2("c1"), "leftouter").join(t3_1, t1_1("tx_id") === t3_1("c1"), "leftouter")
+val t5_1 = t5.selectExpr("tx_id", "store_id", "product_id", "Loyalty_member_num", "Promo_code_id", "employee_id", "cast(amount as decimal(7,2)) as amount", "substr(trans_date,1,10) as trans_date", "lane_id")
+
+val t5_2 = t5_1.groupBy("tx_id","store_id", "product_id", "trans_date").agg(sum("amount").alias("amt"), count("tx_id").alias("Qty"))
+val t5_3 = t5_2.selectExpr("tx_id as tx_id2", "store_id as store_id2", "product_id as product_id2", "amt", "qty")
+
+--val t5_3 = t5_1.join(t5_2, t5_1("tx_id") === t5_2("tx_id") && t5_1("store_id") === t5_2("store_id") && t5_1("product_id") === t5_2("product_id"))
+val t5_4 = t5_1.join(t5_3, t5_1("tx_id") === t5_3("tx_id2") && t5_1("store_id") === t5_3("store_id2") && t5_1("product_id") === t5_3("product_id2"))
+val t5_5 = t5_4.selectExpr("cast(tx_id as integer)","store_id","product_id as prod_id","Loyalty_member_num as loyalty_id","Promo_code_id as promo_id","employee_id as emp_id","qty","cast(amt as double)","trans_date","lane_id").orderBy("tx_id","prod_id")
+
+--val t5_6 = t5_5.selectExpr("concat( substr(trans_date,1,4), substr(trans_date,6,2), substr(trans_date,9,2), store_id, lane_id, tx_id) as trans_id ", "store_id","prod_id","loyalty_id","promo_id","emp_id","cast(amt as double) as amount","cast(qty as integer) as qty","trans_date").distinct.orderBy("trans_id","prod_id")
+
+val t5_6 = t5_5.selectExpr("concat( substr(trans_date,1,4), substr(trans_date,6,2), substr(trans_date,9,2) ) as trans_id ", "store_id","prod_id","loyalty_id","promo_id","emp_id","cast(amt as double) as amount","cast(qty as integer) as qty","trans_date","lane_id","tx_id").distinct.orderBy("trans_id","prod_id")
+
+val t5_7 = t5_5.selectExpr("concat("%05d".format(store_id), "%02d".format(lane_id), "%04d".format(tx_id) ) as trans_id ")
+
+val t5_6 = t5_5.selectExpr("concat( substr(trans_date,1,4), substr(trans_date,6,2), substr(trans_date,9,2), "%05d".format(store_id), "%02d".format(lane_id), "%04d".format(tx_id) ) as trans_id ", "store_id","prod_id","loyalty_id","promo_id","emp_id","cast(amt as double) as amount","cast(qty as integer) as qty","trans_date").distinct.orderBy("trans_id","prod_id")
+
+
+
+t5_6.registerTempTable("temptable")
+
+sqlContext.sql("insert into retail.fact_store select * from temptable")
+
+--sqlContext.sql("CREATE TABLE IF NOT EXISTS mytable as select * from temptable")
+
+--sqlContext.sql("insert into retail.fact_store as select * from temptable")
+
+--sqlContext.sql("select * from temptable").show
+
+sqlContext.sql("insert into retail.fact_store select concat(substr(trans_date, 1,4), substr(trans_date, 6,2), substr(trans_date, 9,2),store_id, lane_id, tx_id) as tran_id, store_id, prod_id, loyalty_id, promo_id, emp_id, amt as amout, qty as qte, trans_date from temptable")
+
+--val t5_5 = t5_4.selectExpr("concat( substr(trans_date,1,4), substr(trans_date,6,2), substr(trans_date,9,2), store_id, lane_id, tx_id) as trans_id ", "store_id","product_id as prod_id","Loyalty_member_num as loyalty_id","Promo_code_id as promo_id","employee_id as emp_id","qty as qte","cast(amt as double)","trans_date")
+val t5_5 = t5_4.selectExpr("concat( substr(trans_date,1,4), substr(trans_date,6,2), substr(trans_date,9,2)) as date_id ", "store_id","product_id as prod_id","Loyalty_member_num as loyalty_id","Promo_code_id as promo_id","employee_id as emp_id","qty as qte","cast(amt as double)","trans_date")
+
+val t5_6 = t5_5.selectExpr("cast(trans_id as integer)","store_id", "prod_id", "loyalty_id", "promo_id", "emp_id", "amt as amount", "cast (qte as integer)", "trans_date")
+
+sqlContext.sql("insert into retail.fact_store select cast(trans_id as integer), store_id, prod_id, loyalty_id, promo_id, emp_id, amt as amout, qty as qte, trans_date from temptable")
+
+def transid (tdate:String, sid:Int, lid:Int, tid:Int)= {
+val sidf="%05d".format(sid)
+val lidf="%02d".format(lid)
+val tidf="%04d".format(tid)
+tdate+sidf+lidf+tidf
+}
+
+def myudf(a:Int, b:Int)= { 
+val af="%05d".format(a)
+val bf="%05d".format(b)
+af+bf}
+
+scala> myudf(1,2)
+res24: String = 0000100002
+
+scala> transid("20180101",4,1,1)
+res7: String = 2018010100004010001
+
+scala> val transIdAnms = transid(_,_,_,_)
+transIdAnms: (String, Int, Int, Int) => String = <function4>
+
+scala> val tid = sqlContext.udf.register("getTransId", transIdAnms)
+tid: org.apache.spark.sql.UserDefinedFunction = UserDefinedFunction(<function4>,StringType,List(StringType, IntegerType, IntegerType, IntegerType))
+
+scala> t5_6.select(tid(t5_6("trans_id"),t5_6("store_id"),t5_6("lane_id"),t5_6("tx_id"))).show
++------------------------------------+                                          
+|UDF(trans_id,store_id,lane_id,tx_id)|
++------------------------------------+
+|                 2018010100004010006|
+|                 2018010100004010002|
+|                 2018010100004010006|
+|                 2018010100004010002|
+|                 2018010100004010006|
+|                 2018010100004010002|
+|                 2018010100004010002|
+|                 2018010100004010006|
+|                 2018010100004010002|
+|                 2018010100004010006|
++------------------------------------+
+
+scala> t5_6.select(tid(t5_6("trans_id"),t5_6("store_id"),t5_6("lane_id"),t5_6("tx_id")), t5_6("store_id")).show
++------------------------------------+--------+                                 
+|UDF(trans_id,store_id,lane_id,tx_id)|store_id|
++------------------------------------+--------+
+|                 2018010100004010002|       4|
+|                 2018010100004010006|       4|
+|                 2018010100004010002|       4|
+|                 2018010100004010006|       4|
+|                 2018010100004010002|       4|
+|                 2018010100004010006|       4|
+|                 2018010100004010002|       4|
+|                 2018010100004010006|       4|
+|                 2018010100004010002|       4|
+|                 2018010100004010006|       4|
++------------------------------------+--------+
+
+val t5_7 = t5_6.selectExpr(tid(t5_6("trans_id"),t5_6("store_id"),t5_6("lane_id"),t5_6("tx_id")), "store_id","prod_id","loyalty_id","promo_id","emp_id","amt as amount","qty","trans_date","lane_id","tx_id").distinct.orderBy("trans_id","prod_id")
+
+val t5_7 = t5_6.select(tid(t5_6("trans_id"),t5_6("store_id"),t5_6("lane_id"),t5_6("tx_id")), t5_6("store_id"), t5_6("prod_id"), t5_6("loyalty_id"), t5_6("promo_id"), t5_6("emp_id"), t5_6("amt"), t5_6("qty"), t5_6("trans_date"))
+
+t5_7.registerTempTable("temptable")
+
+sqlContext.sql("insert into retail.fact_store select * from temptable")

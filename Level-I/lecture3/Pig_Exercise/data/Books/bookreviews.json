@@ -1,0 +1,18 @@
+[
+{author: 'J. K. Rowlings', title: 'The Sorcerers Stone', published: 1997, reviews: [{name: 'Mary', stars: 5},{name: 'Tom', stars: 5}]},
+{author: 'J. K. Rowlings', title: 'The Chamber of Secrets', published: 1998, reviews: [{name: 'Bill', stars: 5},{name: 'Sue', stars: 4},{name: 'Theo', stars: 5}]},
+{author: 'J. K. Rowlings', title: 'The Prisoner of Azkaban', published: 1999, reviews: [{name: 'Mary', stars: 5},{name: 'Cindy', stars: 5}]},
+{author: 'J. K. Rowlings', title: 'The Goblet of Fire', published: 2000, reviews: [{name: 'Andrew', stars: 4},{name: 'Katie', stars: 4},{name: 'Scott', stars: 5}]},
+{author: 'J. K. Rowlings', title: 'The Order of the Phoenix', published: 2003, reviews: [{name: 'Jeff', stars: 3},{name: 'Sara', stars: 4},{name: 'Ryan', stars: 5}]},
+{author: 'J. K. Rowlings', title: 'The Half-Blood Prince', published: 2005, reviews: [{name: 'Bob', stars: 5},{name: 'Autumn', stars: 4}]},
+{author: 'J. K. Rowlings', title: 'The Deathly Hallows', published: 2007, reviews: [{name: 'Betty', stars: 5},{name: 'Janet', stars: 5},{name: 'Scott', stars: 5}]},
+{author: 'David Baldacci', title: 'Camel Club', published: 2005, reviews: [{name: 'Andrew', stars: 4},{name: 'Katie', stars: 4},{name: 'Scott', stars: 5}]},
+{author: 'David Baldacci', title: 'The Collectors', published: 2006, reviews: [{name: 'Mary', stars: 5},{name: 'Tom', stars: 5}]},
+{author: 'David Baldacci', title: 'Stone Cold', published: 2007, reviews: [{name: 'Bill', stars: 5},{name: 'Sue', stars: 4},{name: 'Theo', stars: 5}]},
+{author: 'David Baldacci', title: 'Divine Justice', published: 2008, reviews: [{name: 'Mary', stars: 5},{name: 'Cindy', stars: 5}]},
+{author: 'David Baldacci', title: 'Hells Corner', published: 2010, reviews: [{name: 'Andrew', stars: 4},{name: 'Katie', stars: 4},{name: 'Scott', stars: 5}]},
+{author: 'J. K. Rowlings', title: 'Split Second', published: 2003, reviews: [{name: 'Jeff', stars: 3},{name: 'Sara', stars: 4},{name: 'Ryan', stars: 5}]},
+{author: 'David Baldacci', title: 'Hour Game', published: 2004, reviews: [{name: 'Bob', stars: 5},{name: 'Autumn', stars: 4}]},
+{author: 'David Baldacci', title: 'Simple Genius', published: 2007, reviews: [{name: 'Betty', stars: 5},{name: 'Janet', stars: 5},{name: 'Scott', stars: 5}]},
+{author: 'David Baldacci', title: 'First Family', published: 2009, reviews: [{name: 'Andrew', stars: 4},{name: 'Katie', stars: 4},{name: 'Scott', stars: 5}]}
+]

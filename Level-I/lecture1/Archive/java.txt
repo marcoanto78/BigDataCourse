@@ -1,0 +1,19 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class MainClass {
+    public static void main(String[] args){
+        try {
+            File f = new File("D:\\Shyam\\Today\\sample_data.txt");
+            BufferedReader b = new BufferedReader(new FileReader(f));
+            String readLine = "";
+            while ((readLine = b.readLine()) != null) {
+                System.out.println(readLine.split("\\[")[1].split(":")[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}

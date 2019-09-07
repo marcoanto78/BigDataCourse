@@ -1,0 +1,38 @@
+movieId,title,genres,IUD_Flag
+1,Toy Story (1995),Adventure|Animation|Children,U
+2,Jumanji (1995),Adventure|Children,U
+3,Grumpier Old Men (1995),Comedy,U
+4,Waiting to Exhale (1995),Comedy|Drama,U
+5,Father of the Bride Part II (1995),Comedy,U
+6,Heat (1995),Action|Crime,U
+7,Sabrina (1995),Comedy,U
+8,Tom and Huck (1995),Adventure,U
+9,Sudden Death (1995),Action,U
+10,GoldenEye (1995),Action|Adventure,U
+11,American President  The (1995),Comedy|Drama,U
+12,Dracula: Dead and Loving It (1995),Comedy,U
+13,Balto (1995),Adventure|Animation|Children,D
+14,Nixon (1995),Drama,D
+15,Cutthroat Island (1995),Action|Adventure|Romance,D
+16,Casino (1995),Crime|Drama,D
+17,Sense and Sensibility (1995),Drama|Romance,D
+18,Four Rooms (1995),Comedy,D
+19,Ace Ventura: When Nature Calls (1995),Comedy,D
+20,Money Train (1995),Action|Comedy|Crime|Drama|Thriller,D
+21,Get Shorty (1995),Comedy|Crime|Thriller,D
+22,Copycat (1995),Crime|Drama|Horror|Mystery|Thriller,D
+23,Assassins (1995),Action|Crime|Thriller,D
+24,Powder (1995),Drama|Sci-Fi,D
+25,Leaving Las Vegas (1995),Drama|Romance,D
+26,Othello (1995),Drama,D
+27,Now and Then (1995),Children|Drama,D
+28,Persuasion (1995),Drama|Romance,D
+29,City of Lost Children  The (Cité des enfants perdus  La) (1995),Adventure|Drama|Fantasy|Mystery|Sci-Fi,D
+999999,Shanghai Triad (Yao a yao yao dao waipo qiao) (1995),Crime|Drama,I
+1000000,Dangerous Minds (1995),Drama,I
+1000001,Twelve Monkeys (a.k.a. 12 Monkeys) (1995),Mystery|Sci-Fi|Thriller,I
+1000002,Babe (1995),Children|Drama,I
+1000003,Carrington (1995),Drama|Romance,I
+1000004,Dead Man Walking (1995),Crime|Drama,I
+1000005,Across the Sea of Time (1995),Documentary|IMAX,I
+1000006,It Takes Two (1995),Children|Comedy,I

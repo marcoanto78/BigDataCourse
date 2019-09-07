@@ -1,0 +1,8 @@
+def filterCodes(x:Array[String]) = {
+x(1) match {
+ case "TT" => true
+ case "PP" => true
+ case "LL" => true
+ case "BB" => true
+ case _ => false
+}}

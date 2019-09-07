@@ -1,0 +1,85 @@
+SHOW DATABASES;
+show tables;
+CREATE DATABASE hiveexe LOCATION '/data/hiveexe';
+use hiveexe;
+
+CREATE TABLE T1 (id int, name string);
+CREATE TABLE T1 (id int, name string) row format delimited fields terminated by ',';
+insert into t1 values (1, 'JAC');
+select * from t1;
+
+describe t1;
+describe formatted t1;
+
+alter table t1 set location '/data/hiveexe/t2';
+create table t2 like t1;
+create table t2 as select * from t1;
+alter table t1 set tblproperties ('field.delim'=",");
+insert overwrite table t1 select * from t2;
+
+-- TO UPDATE
+insert overwrite table tags select movieid, userid, tag, case tag when 'off-beat comedy' then 0 else tstamp end from tags;
+
+-- TO DELETE 
+insert overwrite table tags select * from tags where tag != 'Nudity (Full Frontal)' ;
+
+-- TO SELECT movie with avg rating
+select m.movieid, m.title, avg(r.rating) from movies m join ratings r on m.movieid = r.movieid group by m.movieid, m.title
+
+-- TO SELECT movie with max tag count
+select n.movieid, n.tag, n.cnt from (select m.movieid, tag , max(m.cnt) over(partition by movieid) cnt2, m.cnt from (select movieid, tag, count(*) cnt from tags group by movieid, tag order by count(*) desc limit 10) as m)n where cnt=cnt2;
+
+-- SO THE FINAL SQL WOULD BE
+SELECT avgRating.title, avgRating.avrt, maxTag.tag, maxTag.cnt
+FROM
+(select m.movieid, m.title, avg(r.rating) as avrt from movies m join ratings r on m.movieid = r.movieid group by m.movieid, m.title) avgRating
+JOIN
+(select n.movieid, n.tag, n.cnt from (select m.movieid, tag , max(m.cnt) over(partition by movieid) cnt2, m.cnt from (select movieid, tag, count(*) cnt from tags group by movieid, tag) as m)n where cnt=cnt2) maxTag
+ON avgRating.movieid = maxTag.movieid;
+
+--HOW TO RUN IMPALA SCRIPT
+impala-shell -f yourScript.hql
+
+--HOW TO RUN HIVE SCRIPT
+hive -f yourScript.hql
+
+--HOW TO RUN IMPALA-SHELL WITHIN UNIX SHELL SCRIPT
+impala-shell -d hiveexe -q "insert overwrite table tags select * from tags where tag != '$1'"
+
+
+
+show create table movies_stage;
+
+CREATE TABLE `movies_stage`(
+  `movieid` int COMMENT 'UPI NOT NULL', 
+  `title` string, 
+  `genres` string)
+ROW FORMAT SERDE 
+  'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe' 
+WITH SERDEPROPERTIES ( 
+  'field.delim'=',', 
+  'serialization.format'=',') 
+STORED AS INPUTFORMAT 
+  'org.apache.hadoop.mapred.TextInputFormat' 
+OUTPUTFORMAT 
+  'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
+LOCATION
+  'hdfs://localhost:54310/user/hive/warehouse/mydb.db/movies_stage'
+TBLPROPERTIES (
+  'transient_lastDdlTime'='1551979415')
+
+NOT NULL
+
+select count(*) as nullcnt from movies_stage where movieid is null;
+
+UPI
+
+select movieid, count(movieid) as tmp from movies_stage group by movieid having tmp>1;
+
+select movieid, count(movieid) as tmp from movies_stage group by movieid having tmp>1 union all select t.movieid, count(t.movieid) as tmp from movies t join movies_stage s on s.movieid = t.movieid group by t.movieid;
+
+DEDUPE
+
+insert overwrite table movies_stage select DISTINCT * from movies_stage;
+
+

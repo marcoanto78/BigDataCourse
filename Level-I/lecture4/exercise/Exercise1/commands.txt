@@ -1,0 +1,31 @@
+#####Create database
+create database retail location '/retail';
+
+#####Create table
+
+create table Order (RowID int,OrderID string,OrderDate string,ShipDate string,ShipMode string,CustomerID string,CustomerName string,Segment string,Country String,City string,State string,PostalCode string,Region string,ProductID string,Category string,SubCategory string,ProductName string,Sales double,Quantity int,Discount double,Profit double) row format delimited fields terminated by ',';
+
+
+#####To know the table location
+
+describe formatted <tablename>
+
+
+####Insert overwrite
+
+insert overwrite table t2 select case when t1.id is null then 9999 else t2.id end, deptname from t2 left join t1 on t2.id=t1.id;
+
+
+#####
+select city, sum(sales) as sls from orders o left join return r on o.orderid =r.orderid where r.orderid is null group by city order by sls desc limit 1;
+
+select productid, productname, category, subcategory, sum(profit) over(partition by productid, productname) as prft from orders o left join return r on o.orderid =r.orderid where r.orderid is null order by prft desc limit 5;
+
+select customerid, customername, count(*) cnt from orders group by customerid, customername order by cnt desc limit 1;
+
+select customerid, customername, sum(sales) sls from orders group by customerid, customername order by sls desc limit 1;
+
+
+insert overwrite table people select person, case upper(person) when upper('Anna Andreadi') then 'East' else region end from people;
+
+insert overwrite table people select * from people where region <> 'East';

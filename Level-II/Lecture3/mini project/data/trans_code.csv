@@ -1,0 +1,7 @@
+1,TT,Transaction
+2,PP,Promotion applied on transaction
+3,LL,Loyalty details
+4,BB,Billing and change
+5,CC,Cash door open/close events
+6,PS,POS machine start
+7,PO,POS machine turn off

@@ -1,0 +1,177 @@
+
+create database retail location "/data/" ;
+
+create table store (Store_id int, Store_num string, City string, Address string, Open_date string, Close_date string) row format delimited fields terminated by ',';
+
+create table employee (Employee_id int, Employee_num int, Store_num string, Employee_name string, Joining_date string, Designation string)  row format delimited fields terminated by ',';
+
+create table promotions (Promo_code_id int, Promo_code string, Description string, Promo_start_date string, Promo_end_date string) row format delimited fields terminated by ',';
+
+create table loyalty (Loyalty_member_num int, Cust_num  int, Card_no string, Joining_date string, Points int) row format delimited fields terminated by ',';
+
+create table product (Product_id int, Product_code string, Add_dt string, Remove_dt string) row format delimited fields terminated by ',';
+
+create table trans_code (Trans_code_id int, Trans_Code string, Description string) row format delimited fields terminated by ',';
+
+
+hadoop fs -copyFromLocal employee.csv /data/retail/employee/
+hadoop fs -copyFromLocal loyalty.csv /data/retail/loyalty
+hadoop fs -copyFromLocal promotions.csv /data/retail/promotions
+hadoop fs -copyFromLocal store.csv /data/retail/store
+hadoop fs -copyFromLocal product.csv /data/retail/product
+hadoop fs -copyFromLocal trans_code.csv /data/retail/trans_code
+
+create table trans_log (c1 string, c2 string, c3 string, c4 string, c5 string, c6 string, c7 string, c8 string, c9 string, c10 string, c11 string) row format delimited fields terminated by ',';
+
+hadoop fs -copyFromLocal trans_log.csv /data/retail/trans_log
+
+
+
+
+
+
+
+
+Create database retail location ‘/data/retail’;
+Use retail;
+Create table Store (store_id int, store_num string, city string, address string, open_date string, close_date string) row format delimited fields terminated by ',';
+
+Create table Employee (Employee_id int, Employee_num  int, Store_num string, Employee_name string, Joining_date string, designation string) row format delimited fields terminated by ',';
+
+Create table Promotion (Promo_code_id int, promo_code  string, description string, Promo_start_date string, Promo_end_date string) row format delimited fields terminated by ',';
+
+Create table Loyalty (Loyalty_member_num int, cust_num int, card_no string, joining_date string, points int) row format delimited fields terminated by ',';
+;
+Create table Product ( product_id int, product_code string, add_dt string, remove_dt string) row format delimited fields terminated by ',';
+;
+Create Table Trans_code (Trans_code_id int, Trans_Code	string, Description string) row format delimited fields terminated by ',';
+
+
+Create Table trans_strings ( trans_seq string, trans_code string, col3 string, col4 string, col5 string, col6 string, col7 string, col8 string, col9 string, col10 string, col11 string) row format delimited fields terminated by ',';
+
+Create Table fact ( tx_id string, store_id string, p_id string, loyalty_id string, promo_id string, emp_id string, amount string, qty string, date string ) row format delimited fields terminated by ',';
+
+-------
+val rowRDD = translog.map(_.split(","));
+val filteredRDD  = rowRDD.filter(x=>x(1)!="PS").filter(x=>x(1)!="PO").filter(x=>x(1)!="CC");
+
+def filterCodes (x:Array[String]) = {
+x(1) match {
+
+Val tt = filteredRDD.filter(x=>x(1)==”TT”)
+Val pp = filteredRDD.filter(x=>x(1)==”PP”)
+Val ll = filteredRDD.filter(x=>x(1)==”LL”)
+Val bb = filteredRDD.filter(x=>x(1)==”BB”)
+
+
+
+
+
+import org.apache.spark.sql.types.{StructType,StructField,StringType,IntegerType};
+import org.apache.spark.sql.Row;
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+val rows = csv.map(line => line.split(",").map(_.trim))
+val data = rows.filter(_(0) != header(0))
+val rdd = data.map(row => Row(row(0),row(1)))
+
+val schema = new StructType()
+    .add(StructField("c1", StringType, true))
+    .add(StructField("c2", StringType, true))
+
+val df = sqlContext.createDataFrame(rdd, schema)
+
+***********************************
+import org.apache.spark.sql.types.{StructType,StructField,StringType,IntegerType};
+import org.apache.spark.sql.Row;
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+val rows = csv.map(line => line.split(",").map(_.trim))
+val rdd = rows.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8),row(9),row(10),row(11)))
+
+val schema = new StructType()
+    .add(StructField("c1", StringType, true))
+    .add(StructField("c2", StringType, true))
+
+val df = sqlContext.createDataFrame(rdd, schema)
+
+
+
+
+
+**********************************************************************
+
+import org.apache.spark.sql.types.{StructType,StructField,StringType,IntegerType};
+import org.apache.spark.sql.Row;
+
+
+
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+val rowstt = csv.map(line => line.split(",").map(_.trim))
+
+val rdd = rowstt.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8),row(9),row(10)))
+
+val rdd2 = rdd.filter(x=>x(1)!="CC").filter(x=>x(1)!="PS").filter(x=>x(1)!="PO")
+
+val schema = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true)).add(StructField("c8", StringType, true)).add(StructField("c9", StringType, true)).add(StructField("c10", StringType, true)).add(StructField("c11", StringType, true))
+
+val df = sqlContext.createDataFrame(rdd, schema)
+
+
+*****************************************************************************
+
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+val rows = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="LL")
+val rowsTT = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="TT")
+val rowsPP = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="PP")
+val rowsBB = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="BB")
+val rddLL = rows.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddTT = rows.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8),row(9),row(10)))
+val rddPP = rows.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddBB = rows.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8)))
+
+val schema = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true)).add(StructField("c8", StringType, true)).add(StructField("c9", StringType, true)).add(StructField("c10", StringType, true)).add(StructField("c11", StringType, true))
+
+val df = sqlContext.createDataFrame(rdd, schema)
+
+
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+import org.apache.spark.sql.types.{StructType,StructField,StringType,IntegerType};
+import org.apache.spark.sql.Row;
+
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+val rowsLL = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="LL")
+val rowsTT = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="TT")
+val rowsPP = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="PP")
+val rowsBB = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="BB")
+val rddLL = rowsLL.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddTT = rowsTT.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8),row(9),row(10)))
+val rddPP = rowsPP.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddBB = rowsBB.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8)))
+
+val schema = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true)).add(StructField("c8", StringType, true)).add(StructField("c9", StringType, true)).add(StructField("c10", StringType, true)).add(StructField("c11", StringType, true))
+
+val dfBB = sqlContext.createDataFrame(rddBB, schema)
+val dfLL = sqlContext.createDataFrame(rddLL, schema)
+val dfPP = sqlContext.createDataFrame(rddPP, schema)
+val dfTT = sqlContext.createDataFrame(rddTT, schema)
+
+
+Item Scan record											
+Trans_Seq	Trans_code	scan_seq	Product_code	amount	discount	add_remove_flag	store_num	POS_emp_num	lane	timestamp	
+			prod_id				store_id	emp_id			
+trans_id = timestamp_ + store_id + lane + trans_seq											
+store_id = store_id											
+prod_id = prod_id											
+loyalty_id = 											
+											
+create table fact_store (trans_id int, store_id int, prod_id int, loyalty_id int, promo_id int, emp_id int, amount decimal(7.2), qte int, trans_date date) row format delimited fields terminated by ',';														
+
+

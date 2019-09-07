@@ -1,0 +1,90 @@
+	SCALA					PYTHON
+
+	spark-shell				pyspark
+
+	val x = sc.textFile("<Your file>")	x = sc.textFile("<Your file>")
+
+	val y = x.map(_.split('[')(1))		y = x.map(lambda x: x.split('[')[1])
+
+	val z = y.map(_.split(':')(0))		z = y.map(lambda x: x.split(':')[0])
+
+	val a = z.map((_,1))			a = z.map(lambda x: (x,1))
+
+	val b = a.reduceByKey(_+_)		b = a.reduceByKey(lambda (a,b): a+b)
+
+	b.collect				b.collect()
+
+
+val inputFile = sc.textFile("/sparkInput/employee.txt")
+
+case class Employee (firstName:String,lastName:String, deptId:Int)
+
+val finalDf = inputFile.map(x=>x.split(",")).map(e=>Employee(e(0),e(1),e(2).toInt)).toDF()
+
+finalDf.printSchema
+
+finalDf.show
+
+finalDf.select("firstName").show
+
+finalDf.registerTempTable("myTable")
+
+sqlContext.sql("SELECT firstName FROM myTable WHERE id=1").show
+
+
+
+locate hive-site.xml
+sudo cp /etc/hive/conf.dist/hive-site.xml /etc/spark/conf.dist/
+
+
+
+sqlContext.sql("create table YOURDB.YOURTABLE(columnName datatype,....)")
+
+sqlContext.sql("insert into YOURDB.YOURTABLE slect * from YOURSPARKTABLE")
+
+MYRDD.saveAsTextFile("OUTPUT DIR")	//Save any rdd with name MYRDD into HDFS
+
+val mydf = sqlContext.sql("select * from YOURDB.YOURTABLE")
+
+mydf.show
+
+val myRddFromDf = mydf.map(x=>x.mkString("|"))
+
+myRddFromDf.saveAsTextFile("OUTPUT DIR")			//SAME FOR PYTHON
+
+df.write.mode("append").saveAsTable("YOURDB.YOURTABLE")		//SAME FOR PYTHON
+
+df.write.mode("overwrite").saveAsTable("YOURDB.YOURTABLE")
+
+
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types.{StructType, StructField, StringType, IntegerType};
+
+val schema = StructType(Seq(StructField("firstName", StringType, true), StructField("lastName", StringType, true), StructField("deptId", IntegerType, true)))
+
+val rowRDD = sc.textFile("/sparkInput/employee.txt").map(_.split(",")).map(e =>Row(e(0), e(1), e(2).toInt))
+
+val peopleDataFrame = sqlContext.createDataFrame(rowRDD, schema)
+
+
+
+val jsonDF = sqlContext.read.json("/sparkInput/departments.json")
+
+jsonDF.registerTempTable("departments")
+
+peopleDataFrame.registerTempTable("employee")
+
+val joinedDF = sqlContext.sql("select * from departments join employee on departments.deptId = employee.deptId")
+
+joinedDF.collect
+
+
+
+// Generate schema
+val schema = StructType(Seq(StructField("fname", StringType, true),
+StructField("lname", StringType, true), StructField("deptId", IntegerType, true)))
+// Convert records of RDD to Rows.
+val rowRDD = people.map(_.split(",")).map(e =>Row(e(0), e(1), e(2).trim.toInt))
+// Apply the schema to the RDD.
+val peopleDataFrame = sqlContext.createDataFrame(rowRDD, schema)
+

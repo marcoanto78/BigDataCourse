@@ -1,0 +1,170 @@
+CREATE TABLE employee (                                       
+  employee_id INT,                                                   
+  employee_num INT,                                                  
+  store_num STRING,                                                  
+  employee_name STRING,                                              
+  joining_date STRING,                                               
+  designation STRING                                                 
+)                                                                    
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','                        
+WITH SERDEPROPERTIES ('serialization.format'=',', 'field.delim'=',') 
+STORED AS TEXTFILE                                                   
+
+
+CREATE TABLE loyalty (       
+  loyalty_member_num INT,           
+  cust_num INT,                     
+  card_no STRING,                   
+  joining_date STRING,              
+  points INT                        
+)                                   
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','                       
+WITH SERDEPROPERTIES ('serialization.format'=',', 'field.delim'=',')
+STORED AS TEXTFILE                                                  
+
+
+CREATE TABLE product (                                       
+  product_id INT,                                                   
+  product_code STRING,                                              
+  add_dt STRING,                                                    
+  remove_dt STRING                                                  
+)                                                                   
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','                       
+WITH SERDEPROPERTIES ('serialization.format'=',', 'field.delim'=',')
+STORED AS TEXTFILE                                                  
+
+CREATE TABLE promotion (                                      
+  promo_code_id INT,                                                 
+  promo_code STRING,                                                 
+  description STRING,                                                
+  promo_start_date STRING,                                           
+  promo_end_date STRING                                              
+)                                                                    
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','                        
+WITH SERDEPROPERTIES ('serialization.format'=',', 'field.delim'=',') 
+STORED AS TEXTFILE                                                   
+
+CREATE TABLE store (                                         
+  store_id INT,                                                     
+  store_num STRING,                                                 
+  city STRING,                                                      
+  address STRING,                                                   
+  open_date STRING,                                                 
+  close_date STRING                                                 
+)                                                                   
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','                       
+WITH SERDEPROPERTIES ('serialization.format'=',', 'field.delim'=',')
+STORED AS TEXTFILE                                                  
+
+CREATE TABLE trans_codes (                                   
+  trans_code_id INT,                                                
+  trans_code STRING,                                                
+  description STRING                                                
+)                                                                   
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','                       
+WITH SERDEPROPERTIES ('serialization.format'=',', 'field.delim'=',')
+STORED AS TEXTFILE                                                  
+
+CREATE TABLE trans_log (                                     
+  c1 STRING,                                                        
+  c2 STRING,                                                        
+  c3 STRING,                                                        
+  c4 STRING,                                                        
+  c5 STRING,                                                        
+  c6 STRING,                                                        
+  c7 STRING,                                                        
+  c8 STRING,                                                        
+  c9 STRING,                                                        
+  c10 STRING,                                                       
+  c11 STRING                                                        
+)                                                                   
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','                       
+WITH SERDEPROPERTIES ('serialization.format'=',', 'field.delim'=',')
+STORED AS TEXTFILE;                                                  
+
+
+import org.apache.spark.sql.types.{StructType,StructField,StringType,IntegerType};
+import org.apache.spark.sql.Row;
+
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+val rowsLL = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="LL")
+val rowsTT = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="TT")
+val rowsPP = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="PP")
+val rowsBB = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="BB")
+val rddLL = rowsLL.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddTT = rowsTT.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8),row(9),row(10)))
+val rddPP = rowsPP.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddBB = rowsBB.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8)))
+
+val schemaLL = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true))
+
+val schemaTT = new StructType().add(StructField("trans_seq", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("Amt", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true)).add(StructField("c8", StringType, true)).add(StructField("c9", StringType, true)).add(StructField("lane", StringType, true)).add(StructField("Tx_Date", StringType, true))
+
+val schemaPP = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true))
+
+val schemaBB = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true)).add(StructField("c8", StringType, true)).add(StructField("c9", StringType, true))
+
+val dfBB = sqlContext.createDataFrame(rddBB, schemaBB)
+val dfLL = sqlContext.createDataFrame(rddLL, schemaLL)
+val dfPP = sqlContext.createDataFrame(rddPP, schemaPP)
+val dfTT = sqlContext.createDataFrame(rddTT, schemaTT)
+
+
+dfBB.show()
+dfLL.show()
+dfPP.show()
+dfTT.show()
+
+var dfEmployee = sqlContext.sql("select * from retail.employee")
+var dfLoyalty = sqlContext.sql("select * from retail.loyalty")
+var dfProduct = sqlContext.sql("select * from retail.product")
+var dfPromotion = sqlContext.sql("select * from retail.promotion")
+var dfStore = sqlContext.sql("select * from retail.store")
+var dfTrans_codes = sqlContext.sql("select * from retail.trans_codes")
+
+dfEmployee.show()
+dfLoyalty.show()
+dfProduct.show()
+dfPromotion.show()
+dfStore.show()
+dfTrans_codes.show()
+
+
+val dfTT_dfTrans_codes = dfTT.join(dfTrans_codes, dfTrans_codes("trans_code") === dfTT("c2"))
+dfTT_dfTrans_codes.show()
+val dfStore_dfTT_dfTrans_codes = dfStore.join(dfTT_dfTrans_codes, dfTT_dfTrans_codes("c8") === dfStore("store_num"))
+dfStore_dfTT_dfTrans_codes.show()
+val dfProduct_dfStore_dfTT_dfTrans_codes =  dfProduct.join(dfStore_dfTT_dfTrans_codes, dfStore_dfTT_dfTrans_codes("c4") === dfProduct("product_code"))
+dfProduct_dfStore_dfTT_dfTrans_codes.show()
+val dfEmployee_dfProduct_dfStore_dfTT_dfTrans_codes = dfEmployee.join(dfProduct_dfStore_dfTT_dfTrans_codes, dfProduct_dfStore_dfTT_dfTrans_codes("c9") === dfEmployee("employee_num"))
+dfEmployee_dfProduct_dfStore_dfTT_dfTrans_codes.show()
+val partial1=dfEmployee_dfProduct_dfStore_dfTT_dfTrans_codes
+partial1.show()
+
+val dfPP_dfPromotion = dfPP.join(dfPromotion, dfPromotion("promo_code") === dfPP("c3"))
+dfPP_dfPromotion.show()
+val partial2 = dfPP_dfPromotion.join(partial1, partial1("trans_seq") === dfPP_dfPromotion("c1"),"right_outer")
+partial2.show()
+
+val dfLL_dfLoyalty = dfLL.join(dfLoyalty, dfLoyalty("card_no") === dfLL("c3"))
+dfLL_dfLoyalty.show()
+val partial3 = dfLL_dfLoyalty.join(partial2, partial2("trans_seq") === dfLL_dfLoyalty("c1"),"right_outer")
+partial3.show()
+
+
+val partial4 = partial3.selectExpr(
+"loyalty_member_num as Loyalty_Member_Id",
+"promo_code_id as Promo_Code_Id",
+"employee_id as Emp_Id",
+"product_id as  Product_Id",
+"store_id as Store_Id",
+"trans_seq as Tx_Id",
+"Amt as Amt",
+"Tx_Date as Tx_Date",
+"lane as lane")
+
+partial4.show()
+
+
+                                         

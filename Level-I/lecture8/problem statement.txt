@@ -1,0 +1,7 @@
+product table is in DB2 with two columns productId and productCode. 
+new transactions can come in two ways, one is in structured text file trans.csv another could be json file trans.json on Hadoop.
+For each product code we generate productId in product table and tag each transaction with productId
+For new products, productId might not be already in product table. 
+
+User needs sales aggregate over last week of data.
+

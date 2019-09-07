@@ -1,0 +1,41 @@
+#=======HIVE========#
+create table store(store_id int, store_num string, city string, address string, open_dt string, close_dt string) ROW FORMAT DELIMITED FIELDS TERMINATED BY ",";
+
+create table employee(emp_id int, emp_num int, store_num string, emp_name string, joining_dt string, designation string) ROW FORMAT DELIMITED FIELDS TERMINATED BY ",";
+
+create table promotions(promo_cd_id int, promo_cd string, description string, promo_start_dt string, promo_end_dt string) ROW FORMAT DELIMITED FIELDS TERMINATED BY ",";
+
+create table loyalty(loyalty_member_id int, cust_id int, card_no string, joining_dt string, points int) ROW FORMAT DELIMITED FIELDS TERMINATED BY ",";
+
+create table product(product_id int, product_cd string, add_dt string, remove_dt string) ROW FORMAT DELIMITED FIELDS TERMINATED BY ",";
+
+create table trans_codes(trans_code_id int, trans_cd string, description string) ROW FORMAT DELIMITED FIELDS TERMINATED BY ",";
+
+#=======SPARK========#
+val inputfile = sc.textFile("/input/trans_log.csv")
+
+val csv = inputfile.map(_.split(","))
+
+import sqlContext.implicits._
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types._
+
+val impData = csv.filter(x=>(x(1) == "TT" || x(1) == "LL" || x(1) == "PP"))
+
+val TT = impData.filter(x=> (x(1) == "TT")).map(x=> Row(x(0), x(1), x(2), x(3), x(4), x(5), x(6), x(7), x(8), x(9), x(10)))
+
+val PP = impData.filter(x=> (x(1) == "PP")).map(x=> Row(x(0), x(1), x(2), x(3), x(4), x(5), x(6)))
+
+val LL = impData.filter(x=> (x(1) == "LL")).map(x=> Row(x(0), x(1), x(2), x(3), x(4), x(5), x(6)))
+
+val ttSchema = StructType(Seq(StructField("seq_num", IntegerType, true),
+StructField("trans_code", StringType, true),
+StructField("item_seq", IntegerType, true),
+StructField("product_cd", StringType, true),
+StructField("amt", DoubleType, true),
+StructField("disc_amt", DoubleType, true),
+StructField("add_flg", IntegerType, true),
+StructField("store", StringType, true),
+StructField("emp_num", IntegerType, true),
+StructField("lane", IntegerType, true),
+StructField("t_stmp", StringType, true) ) )

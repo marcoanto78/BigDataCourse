@@ -1,0 +1,461 @@
+drwxr-xr-x   - hdfs     supergroup          0 2017-07-19 06:31 /var
+[cloudera@quickstart ~]$ gedit
+[cloudera@quickstart ~]$ hdfs dfs -ls /data/
+[cloudera@quickstart ~]$ hdfs dfs -ls /data/
+Found 1 items
+drwxr-xr-x   - cloudera supergroup          0 2018-02-17 09:58 /data/temp
+[cloudera@quickstart ~]$ hdfs dfs -ls /data/temp/
+Found 1 items
+-rwxr-xr-x   1 cloudera supergroup          3 2018-02-17 10:00 /data/temp/000000_0
+[cloudera@quickstart ~]$ hdfs dfs -ls /data/temp/
+Found 1 items
+-rwxr-xr-x   1 cloudera supergroup          3 2018-02-17 10:00 /data/temp/000000_0
+[cloudera@quickstart ~]$ hdfs dfs -cat /data/temp/000000_0
+hi
+[cloudera@quickstart ~]$ vi newfile.txt
+[cloudera@quickstart ~]$ hdfs dfs -moveFromLocal newfile.txt /data/temp/
+[cloudera@quickstart ~]$ cd
+[cloudera@quickstart ~]$ vi datafile.txt
+[cloudera@quickstart ~]$ hdfs dfs -ls /data
+ls: `/data': No such file or directory
+[cloudera@quickstart ~]$ hdfs dfs -ls /data
+Found 1 items
+drwxr-xr-x   - cloudera supergroup          0 2018-02-17 10:54 /data/mydb
+[cloudera@quickstart ~]$ hdfs dfs -moveFromLocal datafile.txt /data/mydb/webhit/
+[cloudera@quickstart ~]$ impala-shell 
+Starting Impala Shell without Kerberos authentication
+Connected to quickstart.cloudera:21000
+Server version: impalad version 2.9.0-cdh5.12.0 RELEASE (build 03c6ddbdcec39238be4f5b14a300d5c4f576097e)
+***********************************************************************************
+Welcome to the Impala shell.
+(Impala Shell v2.9.0-cdh5.12.0 (03c6ddb) built on Thu Jun 29 04:17:31 PDT 2017)
+
+You can run a single query from the command line using the '-q' option.
+***********************************************************************************
+[quickstart.cloudera:21000] > show databases;
+Query: show databases
++------------------+----------------------------------------------+
+| name             | comment                                      |
++------------------+----------------------------------------------+
+| _impala_builtins | System database for Impala builtin functions |
+| default          | Default Hive database                        |
++------------------+----------------------------------------------+
+Fetched 2 row(s) in 0.68s
+[quickstart.cloudera:21000] > invalidate metadata;
+Query: invalidate metadata
+Query submitted at: 2018-02-17 11:11:41 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=714ec54c2e4c3380:3c2a964f00000000
+
+Fetched 0 row(s) in 4.60s
+[quickstart.cloudera:21000] > show databases;
+Query: show databases
++------------------+----------------------------------------------+
+| name             | comment                                      |
++------------------+----------------------------------------------+
+| _impala_builtins | System database for Impala builtin functions |
+| default          | Default Hive database                        |
+| mydb             |                                              |
++------------------+----------------------------------------------+
+Fetched 3 row(s) in 0.00s
+[quickstart.cloudera:21000] > use mydb;
+Query: use mydb
+[quickstart.cloudera:21000] > show tables;
+Query: show tables
++--------+
+| name   |
++--------+
+| webhit |
++--------+
+Fetched 1 row(s) in 0.01s
+[quickstart.cloudera:21000] > select * from webhit;
+Query: select * from webhit
+Query submitted at: 2018-02-17 11:12:45 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=1548659a649d4d4a:6098816d00000000
++------------+--------+
+| day        | webhit |
++------------+--------+
+| 12/12/2015 | 47832  |
+| 10/2/2018  | 3829   |
+| 12/5/2012  | 483    |
+| 14/4/2018  | 3278   |
+| 15/7/2016  | 748    |
+| 21/4/2455  | 73281  |
+| 09/2/2013  | 78     |
++------------+--------+
+Fetched 7 row(s) in 8.15s
+[quickstart.cloudera:21000] > select * from webhit order by webhit desc llimit 5;
+Query: select * from webhit order by webhit desc llimit 5
+Query submitted at: 2018-02-17 11:13:09 (Coordinator: http://quickstart.cloudera:25000)
+ERROR: AnalysisException: Syntax error in line 1:
+select * from webhit order by webhit desc llimit 5
+                                          ^
+Encountered: IDENTIFIER
+Expected: LIMIT, NULLS, OFFSET, ORDER, RANGE, ROWS, UNION, COMMA
+
+CAUSED BY: Exception: Syntax error
+
+[quickstart.cloudera:21000] > select * from webhit order by webhit desc limit 5;
+Query: select * from webhit order by webhit desc limit 5
+Query submitted at: 2018-02-17 11:13:13 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=6a433827381c2f76:54fd28c000000000
++------------+--------+
+| day        | webhit |
++------------+--------+
+| 21/4/2455  | 73281  |
+| 12/12/2015 | 47832  |
+| 10/2/2018  | 3829   |
+| 14/4/2018  | 3278   |
+| 15/7/2016  | 748    |
++------------+--------+
+Fetched 5 row(s) in 0.31s
+[quickstart.cloudera:21000] > select * from webhit;
+Query: select * from webhit
+Query submitted at: 2018-02-17 11:21:40 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=234765bf32488cec:5ebad06500000000
++------------+--------+
+| day        | webhit |
++------------+--------+
+| 12/12/2015 | 47832  |
+| 10/2/2018  | 3829   |
+| 12/5/2012  | 483    |
+| 14/4/2018  | 3278   |
+| 15/7/2016  | 748    |
+| 21/4/2455  | 73281  |
+| 09/2/2013  | 78     |
++------------+--------+
+Fetched 7 row(s) in 0.72s
+[quickstart.cloudera:21000] > refresh webhit;
+Query: refresh webhit
+Query submitted at: 2018-02-17 11:21:55 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=924ed1e7cc00fc60:fdc60ce500000000
+
+Fetched 0 row(s) in 0.22s
+[quickstart.cloudera:21000] > select * from webhit;
+Query: select * from webhit
+Query submitted at: 2018-02-17 11:21:57 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=1a4210d141f80d82:11c9ab2b00000000
++------------+--------+
+| day        | webhit |
++------------+--------+
+| 12/12/2015 | 47832  |
+| 10/2/2018  | 3829   |
+| 12/5/2012  | 483    |
+| 14/4/2018  | 3278   |
+| 15/7/2016  | 748    |
+| 21/4/2455  | 73281  |
+| 09/2/2013  | 78     |
+| 12/12/1212 | 99999  |
++------------+--------+
+Fetched 8 row(s) in 0.15s
+[quickstart.cloudera:21000] > insert into webhit ("99/99/2010", 7843574);
+Query: insert into webhit ("99/99/2010", 7843574)
+Query submitted at: 2018-02-17 11:23:02 (Coordinator: http://quickstart.cloudera:25000)
+ERROR: AnalysisException: Syntax error in line 1:
+insert into webhit ("99/99/2010", 7843574)
+                    ^
+Encountered: STRING LITERAL
+Expected: DEFAULT, IDENTIFIER
+
+CAUSED BY: Exception: Syntax error
+
+[quickstart.cloudera:21000] > insert into webhit values ("99/99/2010", 7843574);
+Query: insert into webhit values ("99/99/2010", 7843574)
+Query submitted at: 2018-02-17 11:23:07 (Coordinator: http://quickstart.cloudera:25000)
+ERROR: AnalysisException: Unable to INSERT into target table (mydb.webhit) because Impala does not have WRITE access to at least one HDFS path: hdfs://quickstart.cloudera:8020/data/mydb/webhit
+
+[quickstart.cloudera:21000] > create table tryit (clmn1 int);
+Query: create table tryit (clmn1 int)
+
+Fetched 0 row(s) in 0.58s
+[quickstart.cloudera:21000] > insert into tryit values (1);
+Query: insert into tryit values (1)
+Query submitted at: 2018-02-17 11:24:00 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=bd4db325ae22528a:690fc0c500000000
+Modified 1 row(s) in 5.10s
+[quickstart.cloudera:21000] > select * from tryit;
+Query: select * from tryit
+Query submitted at: 2018-02-17 11:24:16 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=b747142347a2fad0:be6311ab00000000
++-------+
+| clmn1 |
++-------+
+| 1     |
++-------+
+Fetched 1 row(s) in 0.13s
+[quickstart.cloudera:21000] > select * from tryit;
+Query: select * from tryit
+Query submitted at: 2018-02-17 11:25:30 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=c846505f22c8fe93:39231bc700000000
++-------+
+| clmn1 |
++-------+
+| 1     |
++-------+
+Fetched 1 row(s) in 0.88s
+[quickstart.cloudera:21000] > refresh tryit;
+Query: refresh tryit
+Query submitted at: 2018-02-17 11:25:38 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=de43e77dc8b2e2a0:96a2d54800000000
+
+Fetched 0 row(s) in 0.06s
+[quickstart.cloudera:21000] > select * from tryit;
+Query: select * from tryit
+Query submitted at: 2018-02-17 11:25:39 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=2f4b370e0645b1aa:6aaff66900000000
++-------+
+| clmn1 |
++-------+
+| 2     |
+| 1     |
++-------+
+Fetched 2 row(s) in 0.13s
+[quickstart.cloudera:21000] > describe formatted tryit;
+Query: describe formatted tryit
++------------------------------+------------------------------------------------------------+----------------------+
+| name                         | type                                                       | comment              |
++------------------------------+------------------------------------------------------------+----------------------+
+| # col_name                   | data_type                                                  | comment              |
+|                              | NULL                                                       | NULL                 |
+| clmn1                        | int                                                        | NULL                 |
+|                              | NULL                                                       | NULL                 |
+| # Detailed Table Information | NULL                                                       | NULL                 |
+| Database:                    | mydb                                                       | NULL                 |
+| Owner:                       | cloudera                                                   | NULL                 |
+| CreateTime:                  | Sat Feb 17 11:23:49 PST 2018                               | NULL                 |
+| LastAccessTime:              | UNKNOWN                                                    | NULL                 |
+| Protect Mode:                | None                                                       | NULL                 |
+| Retention:                   | 0                                                          | NULL                 |
+| Location:                    | hdfs://quickstart.cloudera:8020/data/mydb/tryit            | NULL                 |
+| Table Type:                  | MANAGED_TABLE                                              | NULL                 |
+| Table Parameters:            | NULL                                                       | NULL                 |
+|                              | COLUMN_STATS_ACCURATE                                      | true                 |
+|                              | numFiles                                                   | 2                    |
+|                              | numRows                                                    | 1                    |
+|                              | rawDataSize                                                | 1                    |
+|                              | totalSize                                                  | 4                    |
+|                              | transient_lastDdlTime                                      | 1518895525           |
+|                              | NULL                                                       | NULL                 |
+| # Storage Information        | NULL                                                       | NULL                 |
+| SerDe Library:               | org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe         | NULL                 |
+| InputFormat:                 | org.apache.hadoop.mapred.TextInputFormat                   | NULL                 |
+| OutputFormat:                | org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat | NULL                 |
+| Compressed:                  | No                                                         | NULL                 |
+| Num Buckets:                 | 0                                                          | NULL                 |
+| Bucket Columns:              | []                                                         | NULL                 |
+| Sort Columns:                | []                                                         | NULL                 |
++------------------------------+------------------------------------------------------------+----------------------+
+Fetched 29 row(s) in 0.21s
+[quickstart.cloudera:21000] > describe formatted tryit;
+Query: describe formatted tryit
++------------------------------+------------------------------------------------------------+----------------------+
+| name                         | type                                                       | comment              |
++------------------------------+------------------------------------------------------------+----------------------+
+| # col_name                   | data_type                                                  | comment              |
+|                              | NULL                                                       | NULL                 |
+| clmn1                        | int                                                        | NULL                 |
+|                              | NULL                                                       | NULL                 |
+| # Detailed Table Information | NULL                                                       | NULL                 |
+| Database:                    | mydb                                                       | NULL                 |
+| Owner:                       | cloudera                                                   | NULL                 |
+| CreateTime:                  | Sat Feb 17 11:23:49 PST 2018                               | NULL                 |
+| LastAccessTime:              | UNKNOWN                                                    | NULL                 |
+| Protect Mode:                | None                                                       | NULL                 |
+| Retention:                   | 0                                                          | NULL                 |
+| Location:                    | hdfs://quickstart.cloudera:8020/data/mydb/tryit            | NULL                 |
+| Table Type:                  | MANAGED_TABLE                                              | NULL                 |
+| Table Parameters:            | NULL                                                       | NULL                 |
+|                              | COLUMN_STATS_ACCURATE                                      | true                 |
+|                              | numFiles                                                   | 2                    |
+|                              | numRows                                                    | 1                    |
+|                              | rawDataSize                                                | 1                    |
+|                              | totalSize                                                  | 4                    |
+|                              | transient_lastDdlTime                                      | 1518895525           |
+|                              | NULL                                                       | NULL                 |
+| # Storage Information        | NULL                                                       | NULL                 |
+| SerDe Library:               | org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe         | NULL                 |
+| InputFormat:                 | org.apache.hadoop.mapred.TextInputFormat                   | NULL                 |
+| OutputFormat:                | org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat | NULL                 |
+| Compressed:                  | No                                                         | NULL                 |
+| Num Buckets:                 | 0                                                          | NULL                 |
+| Bucket Columns:              | []                                                         | NULL                 |
+| Sort Columns:                | []                                                         | NULL                 |
++------------------------------+------------------------------------------------------------+----------------------+
+Fetched 29 row(s) in 0.01s
+[quickstart.cloudera:21000] > show tables;
+Query: show tables
++--------+
+| name   |
++--------+
+| tryit  |
+| webhit |
++--------+
+Fetched 2 row(s) in 0.01s
+[quickstart.cloudera:21000] > select * from webhit;
+Query: select * from webhit
+Query submitted at: 2018-02-17 12:28:39 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=e047680511bf56eb:c0bd9b900000000
++------------+--------+
+| day        | webhit |
++------------+--------+
+| 12/12/2015 | 47832  |
+| 10/2/2018  | 3829   |
+| 12/5/2012  | 483    |
+| 14/4/2018  | 3278   |
+| 15/7/2016  | 748    |
+| 21/4/2455  | 73281  |
+| 09/2/2013  | 78     |
+| 12/12/1212 | 99999  |
++------------+--------+
+Fetched 8 row(s) in 0.24s
+[quickstart.cloudera:21000] > describe formatted webhit;
+Query: describe formatted webhit
++------------------------------+------------------------------------------------------------+----------------------+
+| name                         | type                                                       | comment              |
++------------------------------+------------------------------------------------------------+----------------------+
+| # col_name                   | data_type                                                  | comment              |
+|                              | NULL                                                       | NULL                 |
+| day                          | string                                                     | NULL                 |
+| webhit                       | int                                                        | NULL                 |
+|                              | NULL                                                       | NULL                 |
+| # Detailed Table Information | NULL                                                       | NULL                 |
+| Database:                    | mydb                                                       | NULL                 |
+| Owner:                       | cloudera                                                   | NULL                 |
+| CreateTime:                  | Sat Feb 17 10:55:28 PST 2018                               | NULL                 |
+| LastAccessTime:              | UNKNOWN                                                    | NULL                 |
+| Protect Mode:                | None                                                       | NULL                 |
+| Retention:                   | 0                                                          | NULL                 |
+| Location:                    | hdfs://quickstart.cloudera:8020/data/mydb/webhit           | NULL                 |
+| Table Type:                  | MANAGED_TABLE                                              | NULL                 |
+| Table Parameters:            | NULL                                                       | NULL                 |
+|                              | COLUMN_STATS_ACCURATE                                      | true                 |
+|                              | numFiles                                                   | 2                    |
+|                              | numRows                                                    | 1                    |
+|                              | rawDataSize                                                | 16                   |
+|                              | totalSize                                                  | 121                  |
+|                              | transient_lastDdlTime                                      | 1518895280           |
+|                              | NULL                                                       | NULL                 |
+| # Storage Information        | NULL                                                       | NULL                 |
+| SerDe Library:               | org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe         | NULL                 |
+| InputFormat:                 | org.apache.hadoop.mapred.TextInputFormat                   | NULL                 |
+| OutputFormat:                | org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat | NULL                 |
+| Compressed:                  | No                                                         | NULL                 |
+| Num Buckets:                 | -1                                                         | NULL                 |
+| Bucket Columns:              | []                                                         | NULL                 |
+| Sort Columns:                | []                                                         | NULL                 |
+| Storage Desc Params:         | NULL                                                       | NULL                 |
+|                              | field.delim                                                | \t                   |
+|                              | serialization.format                                       | \t                   |
++------------------------------+------------------------------------------------------------+----------------------+
+Fetched 33 row(s) in 0.02s
+[quickstart.cloudera:21000] > shell dhfs dfs -chmod 777 -R /data
+                            > ;
+sh: dhfs: command not found
+--------
+Executed in 0.05s
+[quickstart.cloudera:21000] > shell hdfs dfs -chmod 777 -R /data;
+chmod: `-R': No such file or directory
+--------
+Executed in 4.67s
+[quickstart.cloudera:21000] > shell hdfs dfs -chmod -R  777 /data;
+\chmod: changing permissions of '/data/mydb/tryit': Permission denied. user=cloudera is not the owner of inode=tryit
+--------
+Executed in 2.40s
+[quickstart.cloudera:21000] > create table newwebhit like webhit;
+Query: create table newwebhit like webhit
+
+Fetched 0 row(s) in 0.21s
+[quickstart.cloudera:21000] > refresh newwebhit;
+Query: refresh newwebhit
+Query submitted at: 2018-02-17 12:34:16 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=d140b7211e464795:62c612fa00000000
+
+Fetched 0 row(s) in 0.20s
+[quickstart.cloudera:21000] > insert into newwebhit select * from webhit;
+Query: insert into newwebhit select * from webhit
+Query submitted at: 2018-02-17 12:34:37 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=bd4c35567ff60750:6c2305b400000000
+Modified 8 row(s) in 0.21s
+[quickstart.cloudera:21000] > select * from newwebhit;
+Query: select * from newwebhit
+Query submitted at: 2018-02-17 12:34:46 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=b443d66d8f13bd38:90e8d0a400000000
++------------+--------+
+| day        | webhit |
++------------+--------+
+| 12/12/2015 | 47832  |
+| 10/2/2018  | 3829   |
+| 12/5/2012  | 483    |
+| 14/4/2018  | 3278   |
+| 15/7/2016  | 748    |
+| 21/4/2455  | 73281  |
+| 09/2/2013  | 78     |
+| 12/12/1212 | 99999  |
++------------+--------+
+Fetched 8 row(s) in 0.14s
+[quickstart.cloudera:21000] > insert overwrite newwebhit select day , case when day="12/12/2015" then webhit=70000 else webhit end from newwebhit;
+Query: insert overwrite newwebhit select day , case when day="12/12/2015" then webhit=70000 else webhit end from newwebhit
+Query submitted at: 2018-02-17 12:37:41 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=4f4d18b1d8075360:7e8480e000000000
+Modified 8 row(s) in 0.37s
+[quickstart.cloudera:21000] > select * from newwebhit;
+Query: select * from newwebhit
+Query submitted at: 2018-02-17 12:37:49 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=f4b5981748b1cd5:4d463bdc00000000
++------------+--------+
+| day        | webhit |
++------------+--------+
+| 12/12/2015 | 0      |
+| 10/2/2018  | 3829   |
+| 12/5/2012  | 483    |
+| 14/4/2018  | 3278   |
+| 15/7/2016  | 748    |
+| 21/4/2455  | 73281  |
+| 09/2/2013  | 78     |
+| 12/12/1212 | 99999  |
++------------+--------+
+Fetched 8 row(s) in 0.13s
+[quickstart.cloudera:21000] > insert overwrite newwebhit select day , case when day="12/12/2015" then 70000 else webhit end from newwebhit;
+Query: insert overwrite newwebhit select day , case when day="12/12/2015" then 70000 else webhit end from newwebhit
+Query submitted at: 2018-02-17 12:38:34 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=c14027ee22c5f9e9:2b86dd2e00000000
+Modified 8 row(s) in 0.21s
+[quickstart.cloudera:21000] > select * from newwebhit;
+Query: select * from newwebhit
+Query submitted at: 2018-02-17 12:38:36 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=35468b56c9a2f0e3:8bddab0e00000000
++------------+--------+
+| day        | webhit |
++------------+--------+
+| 12/12/2015 | 70000  |
+| 10/2/2018  | 3829   |
+| 12/5/2012  | 483    |
+| 14/4/2018  | 3278   |
+| 15/7/2016  | 748    |
+| 21/4/2455  | 73281  |
+| 09/2/2013  | 78     |
+| 12/12/1212 | 99999  |
++------------+--------+
+Fetched 8 row(s) in 0.13s
+[quickstart.cloudera:21000] > insert overwrite table newwebhit select day , case when day="12/12/2015" then 70000 else webhit end from newwebhit;
+Query: insert overwrite table newwebhit select day , case when day="12/12/2015" then 70000 else webhit end from newwebhit
+Query submitted at: 2018-02-17 12:51:16 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=1d44e4b105075252:df070300000000
+Modified 8 row(s) in 0.22s
+[quickstart.cloudera:21000] > select * from newwebhit;
+Query: select * from newwebhit
+Query submitted at: 2018-02-17 12:51:20 (Coordinator: http://quickstart.cloudera:25000)
+Query progress can be monitored at: http://quickstart.cloudera:25000/query_plan?query_id=294934514e2891d4:633375c600000000
++------------+--------+
+| day        | webhit |
++------------+--------+
+| 12/12/2015 | 70000  |
+| 10/2/2018  | 3829   |
+| 12/5/2012  | 483    |
+| 14/4/2018  | 3278   |
+| 15/7/2016  | 748    |
+| 21/4/2455  | 73281  |
+| 09/2/2013  | 78     |
+| 12/12/1212 | 99999  |
++------------+--------+
+Fetched 8 row(s) in 0.14s
+[quickstart.cloudera:21000] > 

@@ -1,0 +1,242 @@
+locate hive-site.xml
+
+sudo cp /etc/hive/conf.dist/hive-site.xml /etc/spark/conf.dist/
+
+create database retail location "/data/" ;
+
+create table store (Store_id int, Store_num string, City string, Address string, Open_date string, Close_date string) row format delimited fields terminated by ',';
+
+create table employee (Employee_id int, Employee_num int, Store_num string, Employee_name string, Joining_date string, Designation string)  row format delimited fields terminated by ',';
+
+create table promotions (Promo_code_id int, Promo_code string, Description string, Promo_start_date string, Promo_end_date string) row format delimited fields terminated by ',';
+
+create table loyalty (Loyalty_member_num int, Cust_num  int, Card_no string, Joining_date string, Points int) row format delimited fields terminated by ',';
+
+create table product (Product_id int, Product_code string, Add_dt string, Remove_dt string) row format delimited fields terminated by ',';
+
+create table trans_code (Trans_code_id int, Trans_Code string, Description string) row format delimited fields terminated by ',';
+
+
+hadoop fs -copyFromLocal employee.csv /data/retail/employee/
+hadoop fs -copyFromLocal loyalty.csv /data/retail/loyalty
+hadoop fs -copyFromLocal promotions.csv /data/retail/promotions
+hadoop fs -copyFromLocal store.csv /data/retail/store
+hadoop fs -copyFromLocal product.csv /data/retail/product
+hadoop fs -copyFromLocal trans_code.csv /data/retail/trans_code
+
+create table trans_log (c1 string, c2 string, c3 string, c4 string, c5 string, c6 string, c7 string, c8 string, c9 string, c10 string, c11 string) row format delimited fields terminated by ',';
+
+hadoop fs -copyFromLocal trans_log.csv /data/retail/trans_log
+
+
+
+
+
+
+
+
+Create database retail location '/data/retail';
+Use retail;
+Create table Store (store_id int, store_num string, city string, address string, open_date string, close_date string) row format delimited fields terminated by ',';
+
+Create table Employee (Employee_id int, Employee_num  int, Store_num string, Employee_name string, Joining_date string, designation string) row format delimited fields terminated by ',';
+
+Create table Promotions (Promo_code_id int, promo_code  string, description string, Promo_start_date string, Promo_end_date string) row format delimited fields terminated by ',';
+
+Create table Loyalty (Loyalty_member_num int, cust_num int, card_no string, joining_date string, points int) row format delimited fields terminated by ',';
+;
+Create table Product ( product_id int, product_code string, add_dt string, remove_dt string) row format delimited fields terminated by ',';
+;
+Create Table Trans_code (Trans_code_id int, Trans_Code string, Description string) row format delimited fields terminated by ',';
+
+Create Table trans_strings ( trans_seq string, trans_code string, col3 string, col4 string, col5 string, col6 string, col7 string, col8 string, col9 string, col10 string, col11 string) row format delimited fields terminated by ',';
+
+Create Table fact (tx_id string, store_id string, p_id string, loyalty_id string, promo_id string, emp_id string, amount string, qty string, tx_date string) row format delimited fields terminated by ',';
+
+
+-------
+val rowRDD = translog.map(_.split(","));
+val filteredRDD  = rowRDD.filter(x=>x(1)!="PS").filter(x=>x(1)!="PO").filter(x=>x(1)!="CC");
+
+def filterCodes (x:Array[String]) = {
+x(1) match {
+
+Val tt = filteredRDD.filter(x=>x(1)==”TT”)
+Val pp = filteredRDD.filter(x=>x(1)==”PP”)
+Val ll = filteredRDD.filter(x=>x(1)==”LL”)
+Val bb = filteredRDD.filter(x=>x(1)==”BB”)
+
+
+
+
+
+import org.apache.spark.sql.types.{StructType,StructField,StringType,IntegerType};
+import org.apache.spark.sql.Row;
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+val rows = csv.map(line => line.split(",").map(_.trim))
+val data = rows.filter(_(0) != header(0))
+val rdd = data.map(row => Row(row(0),row(1)))
+
+val schema = new StructType()
+    .add(StructField("c1", StringType, true))
+    .add(StructField("c2", StringType, true))
+
+val df = sqlContext.createDataFrame(rdd, schema)
+
+***********************************
+import org.apache.spark.sql.types.{StructType,StructField,StringType,IntegerType};
+import org.apache.spark.sql.Row;
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+val rows = csv.map(line => line.split(",").map(_.trim))
+val rdd = rows.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8),row(9),row(10),row(11)))
+
+val schema = new StructType()
+    .add(StructField("c1", StringType, true))
+    .add(StructField("c2", StringType, true))
+
+val df = sqlContext.createDataFrame(rdd, schema)
+
+
+
+
+
+**********************************************************************
+
+import org.apache.spark.sql.types.{StructType,StructField,StringType,IntegerType,DecimalType};
+import org.apache.spark.sql.Row;
+
+
+
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+val rowstt = csv.map(line => line.split(",").map(_.trim))
+
+val rdd = rowstt.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8),row(9),row(10)))
+
+val rdd2 = rdd.filter(x=>x(1)!="CC").filter(x=>x(1)!="PS").filter(x=>x(1)!="PO")
+
+val schema = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true)).add(StructField("c8", StringType, true)).add(StructField("c9", StringType, true)).add(StructField("c10", StringType, true)).add(StructField("c11", StringType, true))
+
+val df = sqlContext.createDataFrame(rdd, schema)
+
+
+*****************************************************************************
+
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+val rows = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="LL")
+val rowsTT = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="TT")
+val rowsPP = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="PP")
+val rowsBB = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="BB")
+val rddLL = rows.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddTT = rows.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8),row(9),row(10)))
+val rddPP = rows.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddBB = rows.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8)))
+
+val schema = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true)).add(StructField("c8", StringType, true)).add(StructField("c9", StringType, true)).add(StructField("c10", StringType, true)).add(StructField("c11", StringType, true))
+
+val df = sqlContext.createDataFrame(rdd, schema)
+
+
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+import org.apache.spark.sql.types.{StructType,StructField,StringType,IntegerType};
+import org.apache.spark.sql.Row;
+
+val csv = sc.textFile("/data/retail/trans_log/trans_log.csv")
+
+val rowsLL = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="LL")
+val rowsTT = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="TT")
+val rowsPP = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="PP")
+val rowsBB = csv.map(line => line.split(",").map(_.trim)).filter(x=>x(1)=="BB")
+
+val rddLL = rowsLL.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddTT = rowsTT.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8),row(9),row(10)))
+val rddPP = rowsPP.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6)))
+val rddBB = rowsBB.map(row => Row(row(0),row(1),row(2),row(3),row(4),row(5),row(6),row(7),row(8)))
+
+val schemaLL = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true))
+val schemaTT = new StructType().add(StructField("tx_id", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("amount", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true)).add(StructField("c8", StringType, true)).add(StructField("c9", StringType, true)).add(StructField("c10", StringType, true)).add(StructField("trans_date", StringType, true))
+val schemaPP = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true))
+val schemaBB = new StructType().add(StructField("c1", StringType, true)).add(StructField("c2", StringType, true)).add(StructField("c3", StringType, true)).add(StructField("c4", StringType, true)).add(StructField("c5", StringType, true)).add(StructField("c6", StringType, true)).add(StructField("c7", StringType, true)).add(StructField("c8", StringType, true)).add(StructField("c9", StringType, true))
+
+val dfLL = sqlContext.createDataFrame(rddLL, schemaLL)
+val dfTT = sqlContext.createDataFrame(rddTT, schemaTT)
+val dfPP = sqlContext.createDataFrame(rddPP, schemaPP)
+val dfBB = sqlContext.createDataFrame(rddBB, schemaBB)
+
+
+Item Scan record											
+Trans_Seq	Trans_code	scan_seq	Product_code	amount	discount	add_remove_flag	store_num	POS_emp_num	lane	timestamp	
+			prod_id				store_id	emp_id			
+trans_id = timestamp_ + store_id + lane + trans_seq											
+store_id = store_id											
+prod_id = prod_id											
+loyalty_id = 											
+											
+create table fact_store (trans_id string, store_id int, prod_id int, loyalty_id int, promo_id int, emp_id int, amount double, qty int, trans_date string) row format delimited fields terminated by ',';														
+
+val dfemp = sqlContext.sql("SELECT * FROM retail.employee") 
+val dfloyalty = sqlContext.sql("SELECT * FROM retail.loyalty")
+val dfprod = sqlContext.sql("SELECT * FROM retail.product")
+val dfpromo = sqlContext.sql("SELECT * FROM retail.promotion")
+val dfstore = sqlContext.sql("SELECT * FROM retail.store")
+val dftranscode = sqlContext.sql("SELECT * FROM retail.trans_codes")
+
+val t1 = dfTT.join(dftranscode, $"c2" === $"trans_code").join(dfprod, $"c4" === $"product_code")
+t1.show()
+
+val dfTT2 = dfTT.selectExpr("c2", "c4", "c8", "c9", "cast(amount as decimal(7,2) ) as amount", "substr(trans_date,1,10) as trans_date")
+
+val t1   = dfTT.join(dftranscode, $"c2" === $"trans_code").join(dfprod, $"c4" === $"product_code").join(dfstore, $"c8" === $"store_num").join(dfemp, $"c9" === $"employee_num")
+val t1_1 = t1.select("tx_id", "c2", "trans_code_id", "c4", "product_id", "c8", "store_id", "c9", "c10", "employee_id", "amount", "trans_date")
+
+val t2   = dfPP.join(dfpromo, $"c3" === $"promo_code")
+val t2_1 = t2.filter("substr(c7,1,10) <= Promo_end_date")
+val t2_2 = t2.select("c1", "Promo_code_id", "Promo_start_date", "Promo_end_date")
+
+val t3   = dfLL.join(dfloyalty, $"c3" === $"card_no")
+val t3_1 = t3.select("c1", "c3", "loyalty_member_num")
+
+val t4 = dfBB.join(dfstore, $"c6" === $"store_num")
+
+val t5 = t1_1.join(t2_1, t1_1("tx_id") === t2("c1"), "leftouter").join(t3_1, t1_1("tx_id") === t3_1("c1"), "leftouter")
+val t5_1 = t5.select("tx_id", "store_id", "product_id", "Loyalty_member_num", "Promo_code_id", "employee_id", "amount", "trans_date","c10")
+
+val t5_1 = t5.selectExpr("tx_id", "store_id", "product_id", "Loyalty_member_num", "Promo_code_id", "employee_id", "cast(amount as decimal(7,2)) as amount", "substr(trans_date,1,10) as trans_date", "c10 as lane_id")
+
+
+df.selectExpr("cast(year as int) as year", "upper(make) as make",
+    "model", "comment", "blank")
+
+val dfTT2 = dfTT.selectExpr("c2", "c4", "c8", "c9", "cast(amount as decimal(7,2))) as amount", "substr(trans_date,1,10) as trans_date")
+
+val t5_2 = t5_1.groupBy("tx_id","store_id", "product_id", "trans_date").agg(sum("amount").alias("amt"), count("tx_id").alias("Qty"))
+val t5_3 = t5_2.selectExpr("tx_id as tx_id2", "store_id as store_id2", "product_id as product_id2", "amt", "qty")
+
+val t5_3 = t5_1.join(t5_2, t5_1("tx_id") === t5_2("tx_id") && t5_1("store_id") === t5_2("store_id") && t5_1("product_id") === t5_2("product_id"))
+val t5_4 = t5_1.join(t5_3, t5_1("tx_id") === t5_3("tx_id2") && t5_1("store_id") === t5_3("store_id2") && t5_1("product_id") === t5_3("product_id2"))
+val t5_5 = t5_4.selectExpr("cast(tx_id as integer)","store_id","product_id as prod_id","Loyalty_member_num as loyalty_id","Promo_code_id as promo_id","employee_id as emp_id","qty","cast(amt as double)","trans_date","lane_id").orderBy("tx_id","prod_id")
+
+t5_5.registerTempTable("temptable")
+sqlContext.sql("CREATE TABLE IF NOT EXISTS mytable as select * from temptable")
+
+sqlContext.sql("insert into retail.fact_store as select * from temptable")
+
+https://www.edureka.co/community/2280/concatenate-columns-in-apache-spark-dataframe
+
+https://stackoverflow.com/questions/42219210/how-to-insert-spark-dataframe-to-hive-internal-table
+
+https://stackoverflow.com/questions/29383107/how-to-change-column-types-in-spark-sqls-dataframe
+
+https://stackoverflow.com/questions/40449139/how-to-calculate-sum-and-count-in-a-single-groupby
+
+
+
+
+

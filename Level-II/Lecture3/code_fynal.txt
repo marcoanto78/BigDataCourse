@@ -1,0 +1,111 @@
+val inputfile = sc.textFile("/Spark_project/trans_log.csv")
+
+inputfile.count()
+
+val csv = inputfile.map(_.split(","))
+
+csv.take(1)
+
+import sqlContext.implicits._
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types._
+
+
+val impData = csv.filter(x=>(x(1) == "TT" || x(1) == "LL" || x(1) == "PP"))
+
+
+val TT = impData.filter(x=> (x(1) == "TT")).map(x=> Row(x(0).toInt, x(1).toString, x(2).toInt, x(3).toString, x(4).toDouble, x(5).toDouble, x(6).toInt, x(7).toString, x(8).toInt, x(9).toInt, x(10).toString))
+
+
+val PP = impData.filter(x=> (x(1) == "PP")).map(x=> Row(x(0).toInt, x(1).toString, x(2).toString, x(3).toString, x(4).toDouble, x(5).toDouble, x(6).toString))
+
+val LL = impData.filter(x=> (x(1) == "LL")).map(x=> Row(x(0).toInt, x(1).toString, x(2).toString, x(3).toString, x(4).toDouble, x(5).toDouble, x(6).toString))
+
+
+
+
+
+
+val ttSchema = StructType(Seq(StructField("seq_num", IntegerType, true),
+StructField("trans_code", StringType, true),
+StructField("item_seq", IntegerType, true),
+StructField("product_cd", StringType, true),
+StructField("amt", DoubleType, true),
+StructField("disc_amt", DoubleType, true),
+StructField("add_flg", IntegerType, true),
+StructField("store", StringType, true),
+StructField("emp_num", IntegerType, true),
+StructField("lane", IntegerType, true),
+StructField("t_stmp", StringType, true)) )
+
+val ttDf = sqlContext.createDataFrame(TT,ttSchema)
+
+
+ttDf.show;
+
+ttDf.registerTempTable("ttTable")
+
+
+sqlContext.sql("select seq_num from ttTable").show
+
+
+
+
+
+val ppSchema = StructType(Seq(StructField("seq_num", IntegerType, true),
+StructField("trans_code", StringType, true),
+StructField("promo_code", StringType, true),
+StructField("store", StringType, true),
+StructField("POS_emp_num", DoubleType, true),
+StructField("lane", DoubleType, true),
+StructField("t_stmp", StringType, true) ) )
+
+val ppDf = sqlContext.createDataFrame(PP,ppSchema)
+
+
+ppDf.show;
+
+
+ppDf.registerTempTable("ppTable")
+
+sqlContext.sql("select seq_num from ppTable").show
+
+
+
+val llSchema = StructType(Seq(StructField("seq_num", IntegerType, true),
+StructField("trans_code", StringType, true),
+StructField("loyalty_card_no", StringType, true),
+StructField("store", StringType, true),
+StructField("POS_emp_num", DoubleType, true),
+StructField("lane", DoubleType, true),
+StructField("t_stmp", StringType, true) ) )
+
+val llDf = sqlContext.createDataFrame(LL,llSchema)
+
+
+llDf.show;
+
+
+llDf.registerTempTable("llTable")
+
+
+
+sqlContext.sql("""select  CONCAT( date_format(current_date(), 'yyyymmdd'),lpad(a.store_id,5,'0'),lpad(CAST(cast(c.lane as int)as String),2,'0'),
+lpad(CAST(c.seq_num as String),4,'0')),a.store_id,c.Product_cd ,d.loyalty_member_num, RT_promotion.promo_code_id  ,c.amt,c.disc_amt,c.t_stmp
+from 
+ttTable c  
+left join   llTable LL on c.seq_num=LL.seq_num 
+left join   ppTable b  on b.seq_num=c.seq_num 
+left join   spark.promotion RT_promotion  on  RT_promotion.promo_code=b.promo_code  
+join   spark.store a  on a.store_num=c.store
+left join   spark.loyalty d on  d.card_no=LL.loyalty_card_no """).show;
+   
+   
+   
+
+sqlContext.sql("select 'daydate-yyyymmdd' || seq_num || " " ||  lane    from ppTable").show
+
+
+##########################################################
+EOF
+##########################################################

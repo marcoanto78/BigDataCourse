@@ -1,0 +1,276 @@
+
+create table non_partitioned (c1 int, c2 int, c3 int);
+
+insert into non_partitioned values (1,11,111);
+insert into non_partitioned values (2,22,222);
+insert into non_partitioned values (3,33,333);
+
+create table partitioned_tbl (c2 int, c3 int) partitioned by (c1 int);
+
+insert into partitioned_tbl partition (c1 = 1) values (11,111);
+insert into partitioned_tbl partition (c1 = 2) values (22,222);
+insert into partitioned_tbl partition (c1 = 3) values (33,333);
+
+select * from partitioned_tbl where c1=1;
+explain select * from partitioned_tbl where c1=1;
+
+insert into partitioned_tbl partition (c1) select * from non_partitioned ;
+
+P   NP
+c2  c1
+c3  c2
+c1  c3
+
+insert into partitioned_tbl partition (c1) select c2,c3,c1 from non_partitioned ;
+
+insert into partitioned_tbl (c2, c3) partition (c1) select c2,c3,c1 from non_partitioned ;  -- for more readable
+
+same result:
+insert into partitioned_tbl (c2, c3) partition (c1=1) select c2,c3 from non_partitioned ;  
+insert into partitioned_tbl (c2, c3) partition (c1 select c2,c3 from non_partitioned where c1 = 1 ;  
+
+----------------------
+
+create table np (c1 int, c2 int, c3 int, c4 int);
+insert into np values (1,11,111,1111);
+insert into np values (2,22,222,2222);
+insert into np values (3,33,333,3333);
+insert into np values (4,44,444,4444);
+
+select * from np order by 1;
+
+create table p (c1 int, c4 int) partitioned by (c2 int, c3 int);
+insert into p (c1, c4) partition (c2, c3) select c1, c4, c2, c3 from np;
+
+select c1, c2, c3, c4 from p order by 1;
+
+show partitions p;
+
+alter table p drop partition (c2=11, c3=111);
+
+insert overwrite p partition (c2,c3) select * from p where c2!=33 ;
+
+----------------------
+HIVE:
+
+create table text_test (id int, d1  decimal(10,2)   ,   s1  string  ,
+d2  decimal(10,2)   ,   s2  string  ,
+d3  decimal(10,2)   ,   s3  string  ,
+d4  decimal(10,2)   ,   s4  string  ,
+d5  decimal(10,2)   ,   s5  string  ,
+d6  decimal(10,2)   ,   s6  string  ,
+d7  decimal(10,2)   ,   s7  string  ,
+d8  decimal(10,2)   ,   s8  string  ,
+d9  decimal(10,2)   ,   s9  string  ,
+d10 decimal(10,2)   ,   s10 string  ,
+d11 decimal(10,2)   ,   s11 string  ,
+d12 decimal(10,2)   ,   s12 string  ,
+d13 decimal(10,2)   ,   s13 string  ,
+d14 decimal(10,2)   ,   s14 string  ,
+d15 decimal(10,2)   ,   s15 string  ,
+d16 decimal(10,2)   ,   s16 string  ,
+d17 decimal(10,2)   ,   s17 string  ,
+d18 decimal(10,2)   ,   s18 string  ,
+d19 decimal(10,2)   ,   s19 string  ,
+d20 decimal(10,2)   ,   s20 string  ,
+d21 decimal(10,2)   ,   s21 string  ,
+d22 decimal(10,2)   ,   s22 string  ,
+d23 decimal(10,2)   ,   s23 string  ,
+d24 decimal(10,2)   ,   s24 string  ,
+d25 decimal(10,2)   ,   s25 string  ,
+d26 decimal(10,2)   ,   s26 string  ,
+d27 decimal(10,2)   ,   s27 string  ,
+d28 decimal(10,2)   ,   s28 string  ,
+d29 decimal(10,2)   ,   s29 string  ,
+d30 decimal(10,2)   ,   s30 string  ,
+d31 decimal(10,2)   ,   s31 string  ,
+d32 decimal(10,2)   ,   s32 string  ,
+d33 decimal(10,2)   ,   s33 string  ,
+d34 decimal(10,2)   ,   s34 string  ,
+d35 decimal(10,2)   ,   s35 string  )
+ ROW FORMAT DELIMITED FIELDS TERMINATED BY ",";
+
+SELECT avg( t1.d1 ) from text_test t1 join text_test t2 on t1.d3 = t2.d3 and t1.d4 = t2.d4 where t1.d5<3;
+Time taken: 44.888 seconds, Fetched: 1 row(s)
+
+
+create table parquet_test_no_compression (id int, d1      decimal(10,2)   ,       s1      string  ,
+d2      decimal(10,2)   ,       s2      string  ,
+d3      decimal(10,2)   ,       s3      string  ,
+d4      decimal(10,2)   ,       s4      string  ,
+d5      decimal(10,2)   ,       s5      string  ,
+d6      decimal(10,2)   ,       s6      string  ,
+d7      decimal(10,2)   ,       s7      string  ,
+d8      decimal(10,2)   ,       s8      string  ,
+d9      decimal(10,2)   ,       s9      string  ,
+d10     decimal(10,2)   ,       s10     string  ,
+d11     decimal(10,2)   ,       s11     string  ,
+d12     decimal(10,2)   ,       s12     string  ,
+d13     decimal(10,2)   ,       s13     string  ,
+d14     decimal(10,2)   ,       s14     string  ,
+d15     decimal(10,2)   ,       s15     string  ,
+d16     decimal(10,2)   ,       s16     string  ,
+d17     decimal(10,2)   ,       s17     string  ,
+d18     decimal(10,2)   ,       s18     string  ,
+d19     decimal(10,2)   ,       s19     string  ,
+d20     decimal(10,2)   ,       s20     string  ,
+d21     decimal(10,2)   ,       s21     string  ,
+d22     decimal(10,2)   ,       s22     string  ,
+d23     decimal(10,2)   ,       s23     string  ,
+d24     decimal(10,2)   ,       s24     string  ,
+d25     decimal(10,2)   ,       s25     string  ,
+d26     decimal(10,2)   ,       s26     string  ,
+d27     decimal(10,2)   ,       s27     string  ,
+d28     decimal(10,2)   ,       s28     string  ,
+d29     decimal(10,2)   ,       s29     string  ,
+d30     decimal(10,2)   ,       s30     string  ,
+d31     decimal(10,2)   ,       s31     string  ,
+d32     decimal(10,2)   ,       s32     string  ,
+d33     decimal(10,2)   ,       s33     string  ,
+d34     decimal(10,2)   ,       s34     string  ,
+d35     decimal(10,2)   ,       s35     string  )
+STORED AS PARQUET;
+
+insert into parquet_test_no_compression select * from text_test;
+
+SELECT avg( t1.d1 ) from parquet_test_no_compression t1 join parquet_test_no_compression t2 on t1.d3 = t2.d3 and t1.d4 = t2.d4 where t1.d5<3;
+Time taken: 44.473 seconds, Fetched: 1 row(s)
+
+
+create table parquet_test_gzip_compression (id int, d1      decimal(10,2)   ,       s1      string  ,
+d2      decimal(10,2)   ,       s2      string  ,
+d3      decimal(10,2)   ,       s3      string  ,
+d4      decimal(10,2)   ,       s4      string  ,
+d5      decimal(10,2)   ,       s5      string  ,
+d6      decimal(10,2)   ,       s6      string  ,
+d7      decimal(10,2)   ,       s7      string  ,
+d8      decimal(10,2)   ,       s8      string  ,
+d9      decimal(10,2)   ,       s9      string  ,
+d10     decimal(10,2)   ,       s10     string  ,
+d11     decimal(10,2)   ,       s11     string  ,
+d12     decimal(10,2)   ,       s12     string  ,
+d13     decimal(10,2)   ,       s13     string  ,
+d14     decimal(10,2)   ,       s14     string  ,
+d15     decimal(10,2)   ,       s15     string  ,
+d16     decimal(10,2)   ,       s16     string  ,
+d17     decimal(10,2)   ,       s17     string  ,
+d18     decimal(10,2)   ,       s18     string  ,
+d19     decimal(10,2)   ,       s19     string  ,
+d20     decimal(10,2)   ,       s20     string  ,
+d21     decimal(10,2)   ,       s21     string  ,
+d22     decimal(10,2)   ,       s22     string  ,
+d23     decimal(10,2)   ,       s23     string  ,
+d24     decimal(10,2)   ,       s24     string  ,
+d25     decimal(10,2)   ,       s25     string  ,
+d26     decimal(10,2)   ,       s26     string  ,
+d27     decimal(10,2)   ,       s27     string  ,
+d28     decimal(10,2)   ,       s28     string  ,
+d29     decimal(10,2)   ,       s29     string  ,
+d30     decimal(10,2)   ,       s30     string  ,
+d31     decimal(10,2)   ,       s31     string  ,
+d32     decimal(10,2)   ,       s32     string  ,
+d33     decimal(10,2)   ,       s33     string  ,
+d34     decimal(10,2)   ,       s34     string  ,
+d35     decimal(10,2)   ,       s35     string  )
+STORED AS PARQUET TBLPROPERTIES ("parquet.compression"="gzip");
+
+insert into parquet_test_gzip_compression select * from text_test;
+
+SELECT avg( t1.d1 ) from parquet_test_gzip_compression t1 join parquet_test_gzip_compression t2 on t1.d3 = t2.d3 and t1.d4 = t2.d4 where t1.d5<3;
+Time taken: 44.523 seconds, Fetched: 1 row(s)
+
+
+create table parquet_test_snappy_compression (id int, d1      decimal(10,2)   ,       s1      string  ,
+d2      decimal(10,2)   ,       s2      string  ,
+d3      decimal(10,2)   ,       s3      string  ,
+d4      decimal(10,2)   ,       s4      string  ,
+d5      decimal(10,2)   ,       s5      string  ,
+d6      decimal(10,2)   ,       s6      string  ,
+d7      decimal(10,2)   ,       s7      string  ,
+d8      decimal(10,2)   ,       s8      string  ,
+d9      decimal(10,2)   ,       s9      string  ,
+d10     decimal(10,2)   ,       s10     string  ,
+d11     decimal(10,2)   ,       s11     string  ,
+d12     decimal(10,2)   ,       s12     string  ,
+d13     decimal(10,2)   ,       s13     string  ,
+d14     decimal(10,2)   ,       s14     string  ,
+d15     decimal(10,2)   ,       s15     string  ,
+d16     decimal(10,2)   ,       s16     string  ,
+d17     decimal(10,2)   ,       s17     string  ,
+d18     decimal(10,2)   ,       s18     string  ,
+d19     decimal(10,2)   ,       s19     string  ,
+d20     decimal(10,2)   ,       s20     string  ,
+d21     decimal(10,2)   ,       s21     string  ,
+d22     decimal(10,2)   ,       s22     string  ,
+d23     decimal(10,2)   ,       s23     string  ,
+d24     decimal(10,2)   ,       s24     string  ,
+d25     decimal(10,2)   ,       s25     string  ,
+d26     decimal(10,2)   ,       s26     string  ,
+d27     decimal(10,2)   ,       s27     string  ,
+d28     decimal(10,2)   ,       s28     string  ,
+d29     decimal(10,2)   ,       s29     string  ,
+d30     decimal(10,2)   ,       s30     string  ,
+d31     decimal(10,2)   ,       s31     string  ,
+d32     decimal(10,2)   ,       s32     string  ,
+d33     decimal(10,2)   ,       s33     string  ,
+d34     decimal(10,2)   ,       s34     string  ,
+d35     decimal(10,2)   ,       s35     string  )
+STORED AS PARQUET TBLPROPERTIES ("parquet.compression"="SNAPPY");
+
+insert into parquet_test_snappy_compression select * from text_test;
+
+SELECT avg( t1.d1 ) from parquet_test_snappy_compression t1 join parquet_test_snappy_compression t2 on t1.d3 = t2.d3 and t1.d4 = t2.d4 where t1.d5<3;
+Time taken: 45.884 seconds, Fetched: 1 row(s)
+
+
+create table avro_test (id int, d1      decimal(10,2)   ,       s1      string  ,
+d2      decimal(10,2)   ,       s2      string  ,
+d3      decimal(10,2)   ,       s3      string  ,
+d4      decimal(10,2)   ,       s4      string  ,
+d5      decimal(10,2)   ,       s5      string  ,
+d6      decimal(10,2)   ,       s6      string  ,
+d7      decimal(10,2)   ,       s7      string  ,
+d8      decimal(10,2)   ,       s8      string  ,
+d9      decimal(10,2)   ,       s9      string  ,
+d10     decimal(10,2)   ,       s10     string  ,
+d11     decimal(10,2)   ,       s11     string  ,
+d12     decimal(10,2)   ,       s12     string  ,
+d13     decimal(10,2)   ,       s13     string  ,
+d14     decimal(10,2)   ,       s14     string  ,
+d15     decimal(10,2)   ,       s15     string  ,
+d16     decimal(10,2)   ,       s16     string  ,
+d17     decimal(10,2)   ,       s17     string  ,
+d18     decimal(10,2)   ,       s18     string  ,
+d19     decimal(10,2)   ,       s19     string  ,
+d20     decimal(10,2)   ,       s20     string  ,
+d21     decimal(10,2)   ,       s21     string  ,
+d22     decimal(10,2)   ,       s22     string  ,
+d23     decimal(10,2)   ,       s23     string  ,
+d24     decimal(10,2)   ,       s24     string  ,
+d25     decimal(10,2)   ,       s25     string  ,
+d26     decimal(10,2)   ,       s26     string  ,
+d27     decimal(10,2)   ,       s27     string  ,
+d28     decimal(10,2)   ,       s28     string  ,
+d29     decimal(10,2)   ,       s29     string  ,
+d30     decimal(10,2)   ,       s30     string  ,
+d31     decimal(10,2)   ,       s31     string  ,
+d32     decimal(10,2)   ,       s32     string  ,
+d33     decimal(10,2)   ,       s33     string  ,
+d34     decimal(10,2)   ,       s34     string  ,
+d35     decimal(10,2)   ,       s35     string  )
+STORED AS AVRO;
+
+insert into avro_test select * from text_test;
+
+SELECT avg( t1.d1 ) from avro_test t1 join avro_test t2 on t1.d3 = t2.d3 and t1.d4 = t2.d4 where t1.d5<3;
+
+compute stats fstore;
+compute incremental stats fstore;
+
+epoc timestamp:
+date +%s
+
+
+
+
+
