@@ -21,8 +21,6 @@ val prediction = model.predict(point.features)
 
 predicted.foreach((result) => println(s"predicted label: ${result._1}, actual label: ${result._2}"))
 
-
 //References:
 //https://spark.apache.org/docs/1.6.0/mllib-linear-methods.html
 //https://stackoverflow.com/questions/30981471/sparks-linearregressionwithsgd-is-very-sensitive-to-feature-scaling/34168467
-

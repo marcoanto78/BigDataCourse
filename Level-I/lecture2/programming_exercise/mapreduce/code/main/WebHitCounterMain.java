@@ -10,7 +10,6 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class WebHitCounterMain {
     public static void main(String[] args) throws Exception {
-        //System.setProperty("hadoop.home.dir", "D:\\hadoop-2.6.2\\");
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Daily Web Hit Counter");
         job.setJarByClass(main.WebHitCounterMain.class);
